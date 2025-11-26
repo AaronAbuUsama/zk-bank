@@ -124,6 +124,57 @@ const commands: CommandDefinition[] = [
     command: ["bun", "cli", "verify:sourcify"],
     category: "Verify",
   },
+
+  // Chain control commands
+  {
+    id: "chain-status",
+    label: "Chain Status",
+    description: "Show current chain status (block, timestamp, gas)",
+    command: ["bun", "cli", "chain", "status"],
+    category: "Chain",
+  },
+  {
+    id: "chain-mine-1",
+    label: "Mine 1 Block",
+    description: "Mine a single block",
+    command: ["bun", "cli", "chain", "mine", "1"],
+    category: "Chain",
+  },
+  {
+    id: "chain-mine-10",
+    label: "Mine 10 Blocks",
+    description: "Mine 10 blocks",
+    command: ["bun", "cli", "chain", "mine", "10"],
+    category: "Chain",
+  },
+  {
+    id: "chain-warp-1h",
+    label: "Warp +1 Hour",
+    description: "Advance chain time by 1 hour",
+    command: ["bun", "cli", "chain", "warp", "+3600"],
+    category: "Chain",
+  },
+  {
+    id: "chain-warp-1d",
+    label: "Warp +1 Day",
+    description: "Advance chain time by 1 day",
+    command: ["bun", "cli", "chain", "warp", "+86400"],
+    category: "Chain",
+  },
+  {
+    id: "chain-snapshot",
+    label: "Create Snapshot",
+    description: "Save current chain state",
+    command: ["bun", "cli", "chain", "snapshot"],
+    category: "Chain",
+  },
+  {
+    id: "chain-reset",
+    label: "Reset Chain",
+    description: "Reset to initial fork state",
+    command: ["bun", "cli", "chain", "reset"],
+    category: "Chain",
+  },
 ];
 
 type AppState = "select" | "running" | "done";

@@ -1,0 +1,152 @@
+# BMM Workflow Status - zk-bank
+# Generated: 2025-11-26
+# Track: Enterprise BMad Method (Greenfield)
+
+# STATUS DEFINITIONS:
+# ==================
+# Initial Status (before completion):
+#   - required: Must be completed to progress
+#   - optional: Can be completed but not required
+#   - recommended: Strongly suggested but not required
+#   - conditional: Required only if certain conditions met
+#
+# Completion Status:
+#   - {file-path}: File created/found (e.g., "docs/product-brief.md")
+#   - skipped: Optional/conditional workflow that was skipped
+
+generated: "2025-11-26"
+project: "zk-bank"
+project_type: "CDP Protocol + CLI + Social Trading Game"
+selected_track: "enterprise"
+field_type: "greenfield"
+workflow_path: "enterprise-greenfield"
+
+# User context captured during init
+user_context:
+  background: "Senior Solidity/TypeScript developer, former Aragon DevRel"
+  vision: "Multi-collateral CDP protocol (no interest/usury) with social trading game layer"
+  reference_codebases:
+    - "LUSD v1 (Liquity) - stability mechanism, no interest"
+    - "MakerDAO - stability mechanism"
+    - "Aragon OSx - plugin architecture"
+  layers:
+    protocol: "Solidity CDP contracts, multi-collateral, governance-enabled"
+    cli: "TypeScript/Bun CLI for deployment, simulation, interaction, metrics"
+    game: "Social trading experience with BitMEX trollbox energy"
+  philosophy: "Teach generational wealth-building via CDPs, incentivize good behavior"
+  existing_artifacts:
+    - "docs/PRD-makefile-to-typescript.md (CLI conversion PRD)"
+    - "src/ (Aragon OSx plugin scaffold)"
+    - "cli/ (partial TypeScript CLI)"
+
+# Discovery selections
+discovery:
+  brainstorm: true
+  research: true
+  product_brief: true
+
+workflow_status:
+  # Phase 0: Discovery
+  - phase: 0
+    name: "Discovery"
+    workflows:
+      - id: "brainstorm-project"
+        name: "Brainstorm Project"
+        agent: "analyst"
+        command: "/bmad:bmm:workflows:brainstorm-project"
+        status: ".agents/bmm-brainstorming-session-2025-11-26.md"
+        output: ".agents/bmm-brainstorming-session-2025-11-26.md"
+
+      - id: "research"
+        name: "Research"
+        agent: "analyst"
+        command: "/bmad:bmm:workflows:research"
+        status: "skipped"
+        output: null
+        note: "Skipped - user has deep domain expertise (former Aragon DevRel, built stablecoin)"
+
+      - id: "product-brief"
+        name: "Product Brief"
+        agent: "analyst"
+        command: "/bmad:bmm:workflows:product-brief"
+        status: "required"
+        output: null
+
+  # Phase 1: Planning
+  - phase: 1
+    name: "Planning"
+    workflows:
+      - id: "prd"
+        name: "Product Requirements Document"
+        agent: "pm"
+        command: "/bmad:bmm:workflows:prd"
+        status: "required"
+        output: null
+        note: "Incorporate existing CLI PRD, define protocol + CLI + game layers"
+
+      - id: "validate-prd"
+        name: "Validate PRD"
+        agent: "pm"
+        command: "/bmad:bmm:workflows:validate-prd"
+        status: "recommended"
+        output: null
+
+      - id: "create-ux-design"
+        name: "Create UX Design"
+        agent: "ux-designer"
+        command: "/bmad:bmm:workflows:create-ux-design"
+        status: "recommended"
+        output: null
+        note: "CLI UX + future game/social UI concepts"
+
+  # Phase 2: Solutioning
+  - phase: 2
+    name: "Solutioning"
+    workflows:
+      - id: "architecture"
+        name: "Architecture"
+        agent: "architect"
+        command: "/bmad:bmm:workflows:architecture"
+        status: "required"
+        output: null
+        note: "Protocol contracts, CLI structure, future game layer integration"
+
+      - id: "test-design"
+        name: "Test Design"
+        agent: "tea"
+        command: "/bmad:bmm:workflows:test-design"
+        status: "required"
+        output: null
+        note: "Solidity tests (fork tests, fuzzing), TypeScript CLI tests"
+
+      - id: "validate-architecture"
+        name: "Validate Architecture"
+        agent: "architect"
+        command: "/bmad:bmm:workflows:validate-architecture"
+        status: "recommended"
+        output: null
+
+      - id: "create-epics-and-stories"
+        name: "Create Epics & Stories"
+        agent: "pm"
+        command: "/bmad:bmm:workflows:create-epics-and-stories"
+        status: "required"
+        output: null
+
+      - id: "implementation-readiness"
+        name: "Implementation Readiness"
+        agent: "architect"
+        command: "/bmad:bmm:workflows:implementation-readiness"
+        status: "required"
+        output: null
+
+  # Phase 3: Implementation
+  - phase: 3
+    name: "Implementation"
+    workflows:
+      - id: "sprint-planning"
+        name: "Sprint Planning"
+        agent: "sm"
+        command: "/bmad:bmm:workflows:sprint-planning"
+        status: "required"
+        output: null

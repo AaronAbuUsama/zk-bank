@@ -1,7 +1,7 @@
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib"]
+libs = ["dependencies"]
 
 fs_permissions = [{ access = "write", path = "./artifacts" }]
 
@@ -17,5 +17,29 @@ optimizer-runs = 200
 solc = "0.8.28"
 via_ir = false
 
+# Remappings - using soldeer dependencies
+remappings = [
+    "forge-std/=dependencies/forge-std-1.11.0/src/",
+    "@openzeppelin/contracts/=dependencies/@openzeppelin-contracts-4.9.6/",
+    "@openzeppelin/contracts-upgradeable/=dependencies/@openzeppelin-contracts-upgradeable-4.9.6/",
+    "@aragon/osx/=dependencies/@aragon-osx-1.4.0/packages/contracts/src/",
+    "@aragon/osx-commons-contracts/=dependencies/@aragon-osx-commons-1.4.0/contracts/",
+    "@ensdomains/ens-contracts/=dependencies/@ensdomains-ens-contracts-0.0.22/",
+    "@ensdomains/buffer/=dependencies/@ensdomains-buffer-0.1.0/",
+]
+
 [profile.default.zksync]
 evm_version = "prague"
+
+[soldeer]
+remappings_generate = false
+remappings_location = "config"
+
+[dependencies]
+forge-std = "1.11.0"
+"@openzeppelin-contracts" = "4.9.6"
+"@openzeppelin-contracts-upgradeable" = "4.9.6"
+"@aragon-osx" = { version = "1.4.0", git = "https://github.com/aragon/osx.git", tag = "v1.4.0" }
+"@aragon-osx-commons" = { version = "1.4.0", git = "https://github.com/aragon/osx-commons.git", rev = "869045b069679fad94d640a8a3e1a1b5538cf0f0" }
+"@ensdomains-ens-contracts" = { version = "0.0.22", git = "https://github.com/ensdomains/ens-contracts.git", rev = "f5f2ededccbb7e52be44925c0050620d71762e32" }
+"@ensdomains-buffer" = { version = "0.1.0", git = "https://github.com/ensdomains/buffer.git", rev = "82cc81935de1d1a82e021cf1030d902c5248982b" }

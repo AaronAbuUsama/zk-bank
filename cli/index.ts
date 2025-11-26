@@ -9,6 +9,7 @@ import { registerDeployCommands } from "./commands/deploy";
 import { registerVerifyCommands } from "./commands/verify";
 import { registerPromptCommands } from "./commands/prompts";
 import { registerUtilCommands } from "./commands/utils";
+import { registerChainCommands } from "./commands/chain";
 
 // Check if any arguments were passed (beyond node/bun and script path)
 const hasArgs = process.argv.length > 2;
@@ -30,6 +31,7 @@ if (hasArgs) {
   registerVerifyCommands(program);
   registerPromptCommands(program);
   registerUtilCommands(program);
+  registerChainCommands(program);
 
   // Parse and execute
   program.parse();

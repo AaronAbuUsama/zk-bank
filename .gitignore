@@ -18,3 +18,9 @@ report
 !broadcast
 broadcast/*
 broadcast/*/31337/
+
+
+# Soldeer
+/dependencies
+
+node_modules
