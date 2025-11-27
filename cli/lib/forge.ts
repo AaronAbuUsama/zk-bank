@@ -59,11 +59,11 @@ function buildBaseArgs(options?: ForgeOptions): string[] {
 
 export async function build(options?: ForgeOptions): Promise<number> {
   const args = ["forge", "build", ...buildBaseArgs(options)];
-  return runCommandStreaming(args);
+  return await runCommandStreaming(args);
 }
 
 export async function clean(): Promise<number> {
-  return runCommandStreaming(["forge", "clean"]);
+  return await runCommandStreaming(["forge", "clean"]);
 }
 
 export async function test(options?: ForgeTestOptions): Promise<number> {
@@ -92,7 +92,7 @@ export async function test(options?: ForgeTestOptions): Promise<number> {
     env.ETHERSCAN_API_KEY = "";
   }
 
-  return runCommandStreaming(args, { env });
+  return await runCommandStreaming(args, { env });
 }
 
 export async function coverage(options?: ForgeOptions): Promise<number> {
@@ -103,7 +103,7 @@ export async function coverage(options?: ForgeOptions): Promise<number> {
     "lcov",
     ...buildBaseArgs(options),
   ];
-  return runCommandStreaming(args);
+  return await runCommandStreaming(args);
 }
 
 export async function script(
@@ -140,64 +140,94 @@ export async function script(
     env.SIMULATION = "true";
   }
 
-  return runCommandStreaming(args, { env });
+  return await runCommandStreaming(args, { env });
 }
 
-export async function verify(
-  address: string,
-  contractPath: string,
+type VerifierConfig = {
+  verifierName: string;
+  needsUrl: boolean;
+  needsApiKey: boolean;
+  needsChainId: boolean;
+  customApiKey?: string;
+};
+
+const VERIFIER_CONFIGS: Record<string, VerifierConfig> = {
+  etherscan: {
+    verifierName: "etherscan",
+    needsUrl: true,
+    needsApiKey: true,
+    needsChainId: false,
+  },
+  blockscout: {
+    verifierName: "blockscout",
+    needsUrl: true,
+    needsApiKey: false,
+    needsChainId: false,
+  },
+  sourcify: {
+    verifierName: "sourcify",
+    needsUrl: false,
+    needsApiKey: false,
+    needsChainId: true,
+  },
+  zksync: {
+    verifierName: "zksync",
+    needsUrl: true,
+    needsApiKey: false,
+    needsChainId: false,
+  },
+  "routescan-mainnet": {
+    verifierName: "custom",
+    needsUrl: true,
+    needsApiKey: false,
+    needsChainId: false,
+    customApiKey: "verifyContract",
+  },
+  "routescan-testnet": {
+    verifierName: "custom",
+    needsUrl: true,
+    needsApiKey: false,
+    needsChainId: false,
+    customApiKey: "verifyContract",
+  },
+};
+
+function buildVerifierArgs(
+  verifier: VerifyOptions["verifier"],
   options: VerifyOptions
-): Promise<number> {
-  const args = ["forge", "verify-contract", "--watch"];
+): string[] {
+  const args: string[] = [];
+  const config = VERIFIER_CONFIGS[verifier] || {
+    verifierName: verifier,
+    needsUrl: true,
+    needsApiKey: false,
+    needsChainId: false,
+  };
 
-  // Verifier config
-  switch (options.verifier) {
-    case "etherscan":
-      args.push("--verifier", "etherscan");
-      if (options.verifierUrl) {
-        args.push("--verifier-url", options.verifierUrl);
-      }
-      if (options.apiKey) {
-        args.push("--etherscan-api-key", options.apiKey);
-      }
-      break;
+  args.push("--verifier", config.verifierName);
 
-    case "blockscout":
-      args.push("--verifier", "blockscout");
-      if (options.verifierUrl) {
-        args.push("--verifier-url", options.verifierUrl);
-      }
-      break;
-
-    case "sourcify":
-      args.push("--verifier", "sourcify");
-      args.push("--chain-id", options.chainId.toString());
-      break;
-
-    case "zksync":
-      args.push("--verifier", "zksync");
-      if (options.verifierUrl) {
-        args.push("--verifier-url", options.verifierUrl);
-      }
-      break;
-
-    case "routescan-mainnet":
-    case "routescan-testnet":
-      args.push("--verifier", "custom");
-      if (options.verifierUrl) {
-        args.push("--verifier-url", options.verifierUrl);
-      }
-      args.push("--etherscan-api-key", "verifyContract");
-      break;
-
-    default:
-      args.push("--verifier", options.verifier);
-      if (options.verifierUrl) {
-        args.push("--verifier-url", options.verifierUrl);
-      }
+  if (config.needsUrl && options.verifierUrl) {
+    args.push("--verifier-url", options.verifierUrl);
   }
 
-  // Optional args
+  if (config.needsApiKey && options.apiKey) {
+    args.push("--etherscan-api-key", options.apiKey);
+  }
+
+  if (config.needsChainId) {
+    args.push("--chain-id", options.chainId.toString());
+  }
+
+  if (config.customApiKey) {
+    args.push("--etherscan-api-key", config.customApiKey);
+  }
+
+  return args;
+}
+
+function buildOptionalArgs(options: VerifyOptions): string[] {
+  const args: string[] = [];
+
   if (options.constructorArgs) {
     args.push("--constructor-args", options.constructorArgs);
   }
@@ -210,10 +240,21 @@ export async function verify(
     args.push("--num-of-optimizations", options.numOptimizations.toString());
   }
 
-  // Positional args (must be last)
+  return args;
+}
+
+export async function verify(
+  address: string,
+  contractPath: string,
+  options: VerifyOptions
+): Promise<number> {
+  const args = ["forge", "verify-contract", "--watch"];
+
+  args.push(...buildVerifierArgs(options.verifier, options));
+  args.push(...buildOptionalArgs(options));
   args.push(address, contractPath);
 
-  return runCommandStreaming(args);
+  return await runCommandStreaming(args);
 }
 
 export async function inspect(

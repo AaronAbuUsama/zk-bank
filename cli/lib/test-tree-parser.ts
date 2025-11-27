@@ -100,8 +100,43 @@ export function renderTree(root: TreeItem): string {
 
   for (let i = 0; i < root.children?.length; i++) {
     const item = root.children[i];
+    if (!item) continue;
     const newLines = renderTreeItem(item, i === root.children.length - 1);
     result += `${newLines.join("\n")}\n`;
+  }
+
+  return result;
+}
+
+function formatTreeContent(root: TreeItem): string {
+  return root.comment ? `${root.content} // ${root.comment}` : root.content;
+}
+
+function renderTreeConnector(
+  lastChildren: boolean,
+  prefix: string,
+  content: string
+): string {
+  const connector = lastChildren
+    ? "\u2514\u2500\u2500 "
+    : "\u251c\u2500\u2500 ";
+  return `${prefix}${connector}${content}`;
+}
+
+function renderTreeChildren(
+  children: TreeItem[],
+  lastChildren: boolean,
+  prefix: string
+): string[] {
+  const result: string[] = [];
+  const newPrefix = lastChildren ? `${prefix}    ` : `${prefix}\u2502   `;
+
+  for (let i = 0; i < children.length; i++) {
+    const item = children[i];
+    if (!item) continue;
+    const isLastChild = i === children.length - 1;
+    const childLines = renderTreeItem(item, isLastChild, newPrefix);
+    result.push(...childLines);
   }
 
   return result;
@@ -112,39 +147,11 @@ function renderTreeItem(
   lastChildren: boolean,
   prefix = ""
 ): string[] {
-  const result: string[] = [];
+  const content = formatTreeContent(root);
+  const result = [renderTreeConnector(lastChildren, prefix, content)];
 
-  // Add ourselves
-  const content = root.comment
-    ? `${root.content} // ${root.comment}`
-    : root.content;
-
-  if (lastChildren) {
-    result.push(`${prefix}\u2514\u2500\u2500 ${content}`);
-  } else {
-    result.push(`${prefix}\u251c\u2500\u2500 ${content}`);
-  }
-
-  // Add any children
-  for (let i = 0; i < root.children?.length; i++) {
-    const item = root.children[i];
-
-    // Last child
-    if (i === root.children?.length - 1) {
-      const newPrefix = lastChildren ? `${prefix}    ` : `${prefix}\u2502   `;
-      const lines = renderTreeItem(item, true, newPrefix);
-      for (const line of lines) {
-        result.push(line);
-      }
-      continue;
-    }
-
-    // The rest of children
-    const newPrefix = lastChildren ? `${prefix}    ` : `${prefix}\u2502   `;
-    const lines = renderTreeItem(item, false, newPrefix);
-    for (const line of lines) {
-      result.push(line);
-    }
+  if (root.children?.length) {
+    result.push(...renderTreeChildren(root.children, lastChildren, prefix));
   }
 
   return result;

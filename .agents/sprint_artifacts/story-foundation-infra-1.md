@@ -29,19 +29,19 @@ So that **I get the full interactive experience normally, but can also use quick
 
 ### Tasks / Subtasks
 
-- [ ] Delete unnecessary Foundry command files (AC: #7)
-  - [ ] Delete `cli/commands/build.ts`
-  - [ ] Delete `cli/commands/test.ts`
-  - [ ] Delete `cli/commands/test-tree.ts`
-  - [ ] Delete `cli/commands/deploy.ts`
-  - [ ] Delete `cli/commands/verify.ts`
-  - [ ] Delete `cli/commands/prompts.ts`
-  - [ ] Delete `cli/commands/utils.ts`
-  - [ ] Delete `cli/commands/registry.ts`
-- [ ] Delete obsolete component files
-  - [ ] Delete `cli/components/Header.tsx`
-  - [ ] Delete `cli/components/CommandRunner.tsx`
-  - [ ] Delete `cli/components/types.ts`
+- [x] Delete unnecessary Foundry command files (AC: #7)
+  - [x] Delete `cli/commands/build.ts`
+  - [x] Delete `cli/commands/test.ts`
+  - [x] Delete `cli/commands/test-tree.ts`
+  - [x] Delete `cli/commands/deploy.ts`
+  - [x] Delete `cli/commands/verify.ts`
+  - [x] Delete `cli/commands/prompts.ts`
+  - [x] Delete `cli/commands/utils.ts`
+  - [x] Delete `cli/commands/registry.ts`
+- [x] Delete obsolete component files
+  - [x] Delete `cli/components/Header.tsx`
+  - [x] Delete `cli/components/CommandRunner.tsx`
+  - [x] Delete `cli/components/types.ts`
 - [ ] Keep and update `cli/commands/chain.ts` (AC: #6)
   - [ ] Refactor to export `handleChain(action)` function
   - [ ] Support: status, mine, warp, reset

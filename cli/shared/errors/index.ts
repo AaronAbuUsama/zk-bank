@@ -42,3 +42,39 @@ export function tryCatchSync<T, E = Error>(fn: () => T): Result<T, E> {
     return { data: null, error: error as E };
   }
 }
+
+// ============================================================================
+// Error Types & Helpers
+// ============================================================================
+
+// biome-ignore lint: Intentional barrel export per tech spec (line 660)
+export * from "./types";
+
+import {
+  AggregateZkBankError,
+  ValidationError,
+  type ValidationIssue,
+  ZkBankError,
+} from "./types";
+
+/**
+ * Helper for creating validation errors
+ */
+export function validationError(issues: ValidationIssue[]): ValidationError {
+  const message = issues.map((i) => `${i.field}: ${i.message}`).join("; ");
+  return new ValidationError(message, issues);
+}
+
+/**
+ * Helper for aggregating multiple errors
+ */
+export function aggregateErrors(errors: ZkBankError[]): AggregateZkBankError {
+  return new AggregateZkBankError(`${errors.length} errors occurred`, errors);
+}
+
+/**
+ * Type guard for checking error types
+ */
+export function isZkBankError(error: unknown): error is ZkBankError {
+  return error instanceof ZkBankError;
+}

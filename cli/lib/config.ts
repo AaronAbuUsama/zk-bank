@@ -94,28 +94,29 @@ export function loadConfig(): Partial<Config> {
   return config;
 }
 
-export function validateConfig<K extends keyof Config>(
+function validateRequiredFields<K extends keyof Config>(
   config: Partial<Config>,
   requiredFields: K[]
-): asserts config is Partial<Config> & Required<Pick<Config, K>> {
+): string[] {
   const missing: string[] = [];
-  const invalid: string[] = [];
-
   for (const field of requiredFields) {
     const value = config[field];
     if (value === undefined || value === null || value === "") {
       missing.push(field);
     }
   }
+  return missing;
+}
 
-  // Validate verifier if present
+function validateFieldValues(config: Partial<Config>): string[] {
+  const invalid: string[] = [];
+
   if (config.verifier && !SUPPORTED_VERIFIERS.includes(config.verifier)) {
     invalid.push(
       `verifier must be one of: ${SUPPORTED_VERIFIERS.join(", ")} (got: ${config.verifier})`
     );
   }
 
-  // Validate deployment script if present
   if (
     config.deploymentScript &&
     !SUPPORTED_DEPLOYMENT_SCRIPTS.includes(config.deploymentScript)
@@ -125,20 +126,33 @@ export function validateConfig<K extends keyof Config>(
     );
   }
 
-  // Validate chainId is a number
   if (config.chainId !== undefined && Number.isNaN(config.chainId)) {
     invalid.push("chainId must be a valid number");
   }
 
+  return invalid;
+}
+
+function buildValidationError(missing: string[], invalid: string[]): Error {
+  const errorParts: string[] = [];
+  if (missing.length > 0) {
+    errorParts.push(`Missing required fields: ${missing.join(", ")}`);
+  }
+  if (invalid.length > 0) {
+    errorParts.push(`Invalid values: ${invalid.join("; ")}`);
+  }
+  return new Error(errorParts.join("\n"));
+}
+
+export function validateConfig<K extends keyof Config>(
+  config: Partial<Config>,
+  requiredFields: K[]
+): asserts config is Partial<Config> & Required<Pick<Config, K>> {
+  const missing = validateRequiredFields(config, requiredFields);
+  const invalid = validateFieldValues(config);
+
   if (missing.length > 0 || invalid.length > 0) {
-    const errorParts: string[] = [];
-    if (missing.length > 0) {
-      errorParts.push(`Missing required fields: ${missing.join(", ")}`);
-    }
-    if (invalid.length > 0) {
-      errorParts.push(`Invalid values: ${invalid.join("; ")}`);
-    }
-    throw new Error(errorParts.join("\n"));
+    throw buildValidationError(missing, invalid);
   }
 }
 

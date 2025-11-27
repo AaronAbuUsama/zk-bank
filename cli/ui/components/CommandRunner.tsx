@@ -10,6 +10,28 @@ type Props = {
   onComplete: (exitCode: number) => void;
 };
 
+async function readStreamToLines(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  onLines: (lines: string[]) => void,
+  isMounted: () => boolean
+): Promise<void> {
+  const decoder = new TextDecoder();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done || !isMounted()) break;
+
+      const text = decoder.decode(value);
+      const lines = text.split("\n").filter((l) => l.trim());
+      if (lines.length > 0) {
+        onLines(lines);
+      }
+    }
+  } catch {
+    // Stream closed
+  }
+}
+
 export function CommandRunner({ command, onComplete }: Props) {
   const [output, setOutput] = useState<string[]>([]);
   const [isRunning, setIsRunning] = useState(true);
@@ -25,37 +47,25 @@ export function CommandRunner({ command, onComplete }: Props) {
         env: { ...process.env, FORCE_COLOR: "1" },
       });
 
-      // Stream stdout
-      const stdoutReader = proc.stdout.getReader();
-      const stderrReader = proc.stderr.getReader();
+      const handleNewLines = (lines: string[]) => {
+        setOutput((prev) => {
+          const newOutput = [...prev, ...lines];
+          return newOutput.slice(-20);
+        });
+      };
 
-      async function readStream(
-        reader: ReadableStreamDefaultReader<Uint8Array>
-      ) {
-        const decoder = new TextDecoder();
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            if (!isMounted) break;
-
-            const text = decoder.decode(value);
-            const lines = text.split("\n").filter((l) => l.trim());
-            if (lines.length > 0) {
-              setOutput((prev) => {
-                const newOutput = [...prev, ...lines];
-                // Keep last 20 lines to avoid memory issues
-                return newOutput.slice(-20);
-              });
-            }
-          }
-        } catch {
-          // Stream closed
-        }
-      }
-
-      // Read both streams concurrently
-      await Promise.all([readStream(stdoutReader), readStream(stderrReader)]);
+      await Promise.all([
+        readStreamToLines(
+          proc.stdout.getReader() as ReadableStreamDefaultReader<Uint8Array>,
+          handleNewLines,
+          () => isMounted
+        ),
+        readStreamToLines(
+          proc.stderr.getReader() as ReadableStreamDefaultReader<Uint8Array>,
+          handleNewLines,
+          () => isMounted
+        ),
+      ]);
 
       const exitCode = await proc.exited;
 
