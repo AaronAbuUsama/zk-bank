@@ -2,15 +2,15 @@
 
 import { glob } from "glob";
 import type { BroadcastJson, VerifierType, VerifyOptions } from "../types";
-import * as forge from "./forge";
+import { verify as forgeVerify } from "./forge";
 
-export interface VerifierConfig {
+export type VerifierConfig = {
   type: VerifierType;
   chainId: number;
   apiUrl?: string;
   apiKey?: string;
   blockscoutHostName?: string;
-}
+};
 
 export function getVerifierUrl(config: VerifierConfig): string | undefined {
   switch (config.type) {
@@ -130,7 +130,7 @@ export async function verifyContract(
     constructorArgs,
   };
 
-  const exitCode = await forge.verify(address, contract, options);
+  const exitCode = await forgeVerify(address, contract, options);
   return exitCode === 0;
 }
 

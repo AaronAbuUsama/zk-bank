@@ -15,12 +15,12 @@ So that **I can navigate between Dashboard, Trollbox, and Chain pages using keyb
 ## Acceptance Criteria
 
 1. **AC #1:** Banner displays at top of screen
-2. **AC #2:** Footer displays at bottom with tab indicators [1] [2] [3]
-3. **AC #3:** Keys `1`, `2`, `3` switch between pages
+2. **AC #2:** Footer displays at bottom with tab indicators [Ctrl+1] [Ctrl+2] [Ctrl+3]
+3. **AC #3:** Keys `Ctrl+1`, `Ctrl+2`, `Ctrl+3` switch between pages
 4. **AC #4:** Active tab is visually highlighted with primary color
 5. **AC #5:** Placeholder pages render for Dashboard, Trollbox, Chain
 6. **AC #6:** Layout follows Flush Grid design (no boxes, bg color separation)
-7. **AC #7:** `q` key quits the application
+7. **AC #7:** `Ctrl+Q` quits the application
 8. **AC #8:** `Ctrl+D` toggles layout density mode
 
 ---
@@ -37,7 +37,7 @@ So that **I can navigate between Dashboard, Trollbox, and Chain pages using keyb
   - [ ] Follow Flush Grid (no borders)
 - [ ] Create Footer component (AC: #2, #4, #6)
   - [ ] Create `cli/ui/components/layout/Footer.tsx`
-  - [ ] Display tab indicators [1] [2] [3]
+  - [ ] Display tab indicators [Ctrl+1] [Ctrl+2] [Ctrl+3]
   - [ ] Highlight active tab with theme.primary
   - [ ] Show keyboard hints
   - [ ] Follow Flush Grid design
@@ -63,20 +63,20 @@ So that **I can navigate between Dashboard, Trollbox, and Chain pages using keyb
   - [ ] Export Dashboard, Trollbox, Chain
 - [ ] Implement keyboard navigation (AC: #3, #7, #8)
   - [ ] Update `cli/hooks/useKeyboard.ts`
-  - [ ] Handle `1` → Dashboard
-  - [ ] Handle `2` → Trollbox
-  - [ ] Handle `3` → Chain
-  - [ ] Handle `q` → quit
+  - [ ] Handle `Ctrl+1` → Dashboard
+  - [ ] Handle `Ctrl+2` → Trollbox
+  - [ ] Handle `Ctrl+3` → Chain
+  - [ ] Handle `Ctrl+Q` → quit
   - [ ] Handle `Ctrl+D` → toggle layout mode
 - [ ] Update app.tsx (AC: #1-#5)
   - [ ] Replace command selector with AppShell
   - [ ] Render active page based on activePageAtom
   - [ ] Wire up useKeyboard hook
 - [ ] Verify navigation works (AC: #3, #4)
-  - [ ] Press 1, 2, 3 and verify pages switch
+  - [ ] Press Ctrl+1, Ctrl+2, Ctrl+3 and verify pages switch
   - [ ] Verify active tab highlights correctly
 - [ ] Verify quit works (AC: #7)
-  - [ ] Press q and verify CLI exits
+  - [ ] Press Ctrl+Q and verify CLI exits
 - [ ] Verify layout toggle (AC: #8)
   - [ ] Press Ctrl+D and verify layout changes
 
@@ -95,7 +95,7 @@ This story creates the complete layout architecture per the Architecture documen
 │   (Dashboard | Trollbox | Chain)        │
 │                                         │
 ├─────────────────────────────────────────┤
-│ FOOTER - [1] [2] [3] tabs, hints        │
+│ FOOTER - [^1] [^2] [^3] tabs, hints     │
 └─────────────────────────────────────────┘
 ```
 

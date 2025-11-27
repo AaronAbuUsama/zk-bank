@@ -6,16 +6,16 @@ import type { Command } from "commander";
 import {
   getChainCustomParams,
   loadConfig,
-  validateConfig,
+  validateConfigOrExit,
 } from "../lib/config";
-import * as forge from "../lib/forge";
+import { script as forgeScript, test as forgeTest } from "../lib/forge";
 import { getVerifierParams } from "../lib/verifier";
 
 function getDeployScriptPath(script: string): string {
   return `script/${script}.s.sol:${script}Script`;
 }
 
-function getLogFileName(networkName: string): string {
+function _getLogFileName(networkName: string): string {
   const now = new Date();
   const dateStr = now
     .toISOString()
@@ -34,36 +34,22 @@ export function registerDeployCommands(program: Command): void {
     .option("-v, --verbosity <level>", "Verbosity level (1-5)", "3")
     .option("--skip-tests", "Skip running tests before deployment")
     .action(async (options) => {
-      const config = loadConfig();
-
-      // Validate required fields
-      try {
-        validateConfig(config, [
-          "rpcUrl",
-          "chainId",
-          "networkName",
-          "deploymentPrivateKey",
-          "deploymentScript",
-          "verifier",
-        ]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        console.error("\nRequired environment variables in .env:");
-        console.error("  RPC_URL");
-        console.error("  CHAIN_ID");
-        console.error("  NETWORK_NAME");
-        console.error("  DEPLOYMENT_PRIVATE_KEY");
-        console.error("  VERIFIER");
-        process.exit(1);
-      }
+      const config = validateConfigOrExit(loadConfig(), [
+        "rpcUrl",
+        "chainId",
+        "networkName",
+        "deploymentPrivateKey",
+        "deploymentScript",
+        "verifier",
+      ]);
 
       const verbosity = Number.parseInt(options.verbosity, 10);
-      const chainParams = getChainCustomParams(config.chainId!);
+      const chainParams = getChainCustomParams(config.chainId);
 
       // Run tests first (unless skipped or dry-run)
       if (!(options.skipTests || options.dryRun)) {
         console.log("Running tests before deployment...\n");
-        const testExitCode = await forge.test({
+        const testExitCode = await forgeTest({
           verbosity,
           noMatchPath: "./test/fork-tests/*.sol",
           customParams: chainParams.forgeBuildParams,
@@ -87,13 +73,13 @@ export function registerDeployCommands(program: Command): void {
         await mkdir(artifactsFolder, { recursive: true });
       }
 
-      const scriptPath = getDeployScriptPath(config.deploymentScript!);
+      const scriptPath = getDeployScriptPath(config.deploymentScript);
 
       // Build environment variables for forge script (passes config to Solidity)
       const scriptEnv: Record<string, string> = {
-        DEPLOYMENT_PRIVATE_KEY: config.deploymentPrivateKey!,
-        CHAIN_ID: config.chainId!.toString(),
-        NETWORK_NAME: config.networkName!,
+        DEPLOYMENT_PRIVATE_KEY: config.deploymentPrivateKey,
+        CHAIN_ID: config.chainId.toString(),
+        NETWORK_NAME: config.networkName,
       };
 
       // Add Aragon OSx addresses if set
@@ -120,7 +106,7 @@ export function registerDeployCommands(program: Command): void {
       if (options.dryRun) {
         console.log("Simulating deployment (dry run)...\n");
 
-        const exitCode = await forge.script(scriptPath, config.rpcUrl!, {
+        const exitCode = await forgeScript(scriptPath, config.rpcUrl, {
           verbosity,
           simulation: true,
           customParams: [
@@ -138,13 +124,13 @@ export function registerDeployCommands(program: Command): void {
       console.log(`${action} deployment to ${config.networkName}...\n`);
 
       const verifierParams = getVerifierParams({
-        type: config.verifier!,
-        chainId: config.chainId!,
+        type: config.verifier,
+        chainId: config.chainId,
         apiKey: config.verifierApiKey,
         blockscoutHostName: config.blockscoutHostName,
       });
 
-      const exitCode = await forge.script(scriptPath, config.rpcUrl!, {
+      const exitCode = await forgeScript(scriptPath, config.rpcUrl, {
         verbosity,
         broadcast: true,
         verify: true,

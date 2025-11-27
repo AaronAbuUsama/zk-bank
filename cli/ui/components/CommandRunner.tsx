@@ -1,19 +1,18 @@
 // Command runner component - executes commands and streams output
 
 import { Spinner } from "@inkjs/ui";
-import { Box, Text, useApp } from "ink";
+import { Box, Text } from "ink";
 import { useEffect, useState } from "react";
 import type { CommandDefinition } from "./types";
 
-interface Props {
+type Props = {
   command: CommandDefinition;
   onComplete: (exitCode: number) => void;
-}
+};
 
 export function CommandRunner({ command, onComplete }: Props) {
   const [output, setOutput] = useState<string[]>([]);
   const [isRunning, setIsRunning] = useState(true);
-  const { exit } = useApp();
 
   useEffect(() => {
     let isMounted = true;
@@ -31,8 +30,7 @@ export function CommandRunner({ command, onComplete }: Props) {
       const stderrReader = proc.stderr.getReader();
 
       async function readStream(
-        reader: ReadableStreamDefaultReader<Uint8Array>,
-        prefix?: string
+        reader: ReadableStreamDefaultReader<Uint8Array>
       ) {
         const decoder = new TextDecoder();
         try {
@@ -93,8 +91,8 @@ export function CommandRunner({ command, onComplete }: Props) {
         {output.length === 0 ? (
           <Text dimColor>Waiting for output...</Text>
         ) : (
-          output.map((line, i) => (
-            <Text key={i} wrap="truncate">
+          output.map((line, idx) => (
+            <Text key={`line-${idx}`} wrap="truncate">
               {line}
             </Text>
           ))

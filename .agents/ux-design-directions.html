@@ -476,10 +476,10 @@
   </div>
 
   <script>"use strict";
-    function showDirection(num) {
+    function _showDirection(num) {
       document.querySelectorAll('.direction').forEach(d => d.classList.remove('active'));
       document.querySelectorAll('.direction-nav button').forEach(b => b.classList.remove('active'));
-      document.getElementById('dir' + num).classList.add('active');
+      document.getElementById(`dir${num}`).classList.add('active');
       document.querySelectorAll('.direction-nav button')[num - 1].classList.add('active');
     }
   </script>

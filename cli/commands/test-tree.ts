@@ -5,6 +5,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import type { Command } from "commander";
 import { glob } from "glob";
 import { getSolcVersion } from "../lib/config";
+import { SOL_TEST_EXT, TREE_EXT, YAML_EXT_REGEX } from "../lib/constants";
 import { processYamlFile } from "../lib/test-tree-parser";
 
 const TEST_TREE_MARKDOWN = "TESTS.md";
@@ -48,8 +49,8 @@ export function registerTestTreeCommands(program: Command): void {
 
       // Process each YAML file
       for (const yamlFile of yamlFiles) {
-        const treeFile = yamlFile.replace(/\.t\.yaml$/, ".tree");
-        const solFile = yamlFile.replace(/\.t\.yaml$/, ".t.sol");
+        const treeFile = yamlFile.replace(YAML_EXT_REGEX, TREE_EXT);
+        const solFile = yamlFile.replace(YAML_EXT_REGEX, SOL_TEST_EXT);
 
         // Convert YAML to tree
         console.log(`[Convert]    ${yamlFile} -> ${treeFile}`);
@@ -124,7 +125,7 @@ export function registerTestTreeCommands(program: Command): void {
       const yamlFiles = await glob("test/**/*.t.yaml");
 
       for (const yamlFile of yamlFiles) {
-        const treeFile = yamlFile.replace(/\.t\.yaml$/, ".tree");
+        const treeFile = yamlFile.replace(YAML_EXT_REGEX, TREE_EXT);
         console.log(`[Convert]    ${yamlFile} -> ${treeFile}`);
         await processYamlFile(yamlFile);
       }
@@ -134,10 +135,10 @@ export function registerTestTreeCommands(program: Command): void {
 }
 
 async function generateMarkdown(): Promise<void> {
-  const treeFiles = await glob("test/**/*.tree");
+  const treeFiles = await glob("test/**/*TREE_EXT");
 
   if (treeFiles.length === 0) {
-    console.log("No .tree files found to generate markdown");
+    console.log("No TREE_EXT files found to generate markdown");
     return;
   }
 
@@ -147,7 +148,7 @@ async function generateMarkdown(): Promise<void> {
 
   for (const treeFile of treeFiles) {
     const content = await readFile(treeFile, "utf-8");
-    markdown += "```\n" + content + "```\n\n";
+    markdown += `\`\`\`\n${content}\`\`\`\n\n`;
   }
 
   await writeFile(TEST_TREE_MARKDOWN, markdown);

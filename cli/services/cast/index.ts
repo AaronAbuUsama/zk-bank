@@ -1,5 +1,6 @@
 // Cast command wrapper
 
+import { TX_HASH_REGEX } from "../constants";
 import type { CastSendOptions } from "../types";
 
 async function runCommand(
@@ -133,7 +134,7 @@ export async function send(options: CastSendOptions): Promise<{
   }
 
   // Extract tx hash from output
-  const txHashMatch = stdout.match(/0x[a-fA-F0-9]{64}/);
+  const txHashMatch = stdout.match(TX_HASH_REGEX);
   return {
     success: true,
     txHash: txHashMatch?.[0],

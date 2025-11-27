@@ -1,9 +1,9 @@
 // Shared types for CLI components
 
-export interface CommandDefinition {
+export type CommandDefinition = {
   id: string;
   label: string;
   description: string;
   command: string[];
   category: string;
-}
+};

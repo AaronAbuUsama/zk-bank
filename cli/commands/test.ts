@@ -3,7 +3,7 @@
 import { existsSync } from "node:fs";
 import type { Command } from "commander";
 import { getChainCustomParams, loadConfig } from "../lib/config";
-import * as forge from "../lib/forge";
+import { coverage, test as forgeTest } from "../lib/forge";
 
 export function registerTestCommands(program: Command): void {
   program
@@ -25,7 +25,7 @@ export function registerTestCommands(program: Command): void {
       if (options.coverage) {
         console.log("Generating coverage report...");
 
-        const exitCode = await forge.coverage({
+        const exitCode = await coverage({
           verbosity,
           customParams: chainParams.forgeBuildParams,
         });
@@ -58,7 +58,7 @@ export function registerTestCommands(program: Command): void {
 
       if (options.fork) {
         console.log("Running fork tests...");
-        const exitCode = await forge.test({
+        const exitCode = await forgeTest({
           verbosity,
           matchPath: "./test/fork-tests/*.sol",
           customParams: chainParams.forgeBuildParams,
@@ -68,7 +68,7 @@ export function registerTestCommands(program: Command): void {
 
       // Regular unit tests (exclude fork tests)
       console.log("Running unit tests...");
-      const exitCode = await forge.test({
+      const exitCode = await forgeTest({
         verbosity,
         noMatchPath: "./test/fork-tests/*.sol",
         match: options.match,

@@ -14,7 +14,7 @@ export type DeploymentScript =
   | "DeployDaoWithPlugins"
   | "DeployViaFactory";
 
-export interface Config {
+export type Config = {
   // Network
   rpcUrl: string;
   chainId: number;
@@ -44,13 +44,13 @@ export interface Config {
   // Paths
   artifactsFolder: string;
   logsFolder: string;
-}
+};
 
-export interface ForgeOptions {
+export type ForgeOptions = {
   verbosity?: number;
   zksync?: boolean;
   customParams?: string[];
-}
+};
 
 export interface ForgeScriptOptions extends ForgeOptions {
   broadcast?: boolean;
@@ -70,7 +70,7 @@ export interface ForgeTestOptions extends ForgeOptions {
   coverage?: boolean;
 }
 
-export interface VerifyOptions {
+export type VerifyOptions = {
   verifier: VerifierType;
   verifierUrl?: string;
   apiKey?: string;
@@ -78,40 +78,40 @@ export interface VerifyOptions {
   constructorArgs?: string;
   compilerVersion?: string;
   numOptimizations?: number;
-}
+};
 
-export interface CastSendOptions {
+export type CastSendOptions = {
   privateKey: string;
   rpcUrl: string;
   value?: bigint;
   nonce?: number;
   to: string;
-}
+};
 
 // Test tree types (from make-test-tree.ts)
-export interface Rule {
+export type Rule = {
   comment?: string;
   given?: string;
   when?: string;
   and?: Rule[];
   then?: Rule[];
   it?: string;
-}
+};
 
-export interface TreeItem {
+export type TreeItem = {
   content: string;
   children: TreeItem[];
   comment?: string;
-}
+};
 
 // Broadcast JSON types (from forge script output)
-export interface BroadcastTransaction {
+export type BroadcastTransaction = {
   transactionType: "CREATE" | "CREATE2" | "CALL";
   contractAddress: string | null;
   contractName: string | null;
   constructorArguments?: string;
-}
+};
 
-export interface BroadcastJson {
+export type BroadcastJson = {
   transactions: BroadcastTransaction[];
-}
+};

@@ -1,13 +1,29 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/core", "ultracite/react"],
-{
+  "files": {
+    "includes": ["!.agents", "!.bmad", "!.claude", "!.cursor", "!.vscode"]
+  },
+  "javascript": {
+    "globals": ["Bun", "Deno"]
+  },
   "linter": {
     "rules": {
       "style": {
-        "useBlockStatements": "off"
+        "useBlockStatements": "off",
+        "useFilenamingConvention": "off",
+        "noNonNullAssertion": "warn"
+      },
+      "nursery": {
+        "noIncrementDecrement": "off"
+      },
+      "suspicious": {
+        "useAwait": "warn",
+        "noArrayIndexKey": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "warn"
       }
     }
   }
-}
 }

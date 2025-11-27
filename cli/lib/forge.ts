@@ -43,7 +43,7 @@ function buildBaseArgs(options?: ForgeOptions): string[] {
   const args: string[] = [];
 
   if (options?.verbosity) {
-    args.push("-" + "v".repeat(options.verbosity));
+    args.push(`-${"v".repeat(options.verbosity)}`);
   }
 
   if (options?.zksync) {

@@ -4,7 +4,12 @@ import { rm } from "node:fs/promises";
 import type { Command } from "commander";
 import { glob } from "glob";
 import { getChainCustomParams, loadConfig } from "../lib/config";
-import * as forge from "../lib/forge";
+import {
+  build as forgeBuild,
+  checkInstalled as forgeCheckInstalled,
+  clean as forgeClean,
+  installFoundry,
+} from "../lib/forge";
 
 export function registerBuildCommands(program: Command): void {
   program
@@ -14,10 +19,10 @@ export function registerBuildCommands(program: Command): void {
       console.log("Checking dependencies...");
 
       // Check forge
-      const forgeInstalled = await forge.checkInstalled();
+      const forgeInstalled = await forgeCheckInstalled();
       if (!forgeInstalled) {
         console.log("Forge not found. Installing Foundry...");
-        await forge.installFoundry();
+        await installFoundry();
       }
 
       // Check lcov (optional, just warn)
@@ -38,7 +43,7 @@ export function registerBuildCommands(program: Command): void {
         : { forgeBuildParams: [], forgeScriptParams: [] };
 
       console.log("Building project...");
-      const exitCode = await forge.build({
+      const exitCode = await forgeBuild({
         customParams: chainParams.forgeBuildParams,
       });
 
@@ -56,7 +61,7 @@ export function registerBuildCommands(program: Command): void {
       console.log("Cleaning build artifacts...");
 
       // Clean forge artifacts
-      await forge.clean();
+      await forgeClean();
 
       // Clean test tree files
       const treeFiles = await glob("test/**/*.tree");

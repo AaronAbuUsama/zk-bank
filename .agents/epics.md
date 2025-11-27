@@ -11,12 +11,12 @@
 
 ### Goal
 
-Establish the architectural foundation that enables all subsequent features by removing dual-mode complexity, implementing centralized state management, setting up real-time backend infrastructure, and creating the core UI shell with theming support.
+Establish the architectural foundation that enables all subsequent features by simplifying the CLI to interactive-first, implementing centralized state management, setting up real-time backend infrastructure, and creating the core UI shell with theming support.
 
 ### Scope
 
 **In Scope:**
-- Remove Commander.js and dual-mode CLI logic
+- Simplify CLI to Ink-first with essential commands (config, chain, help, version)
 - Install and configure Jotai for atomic state management
 - Install and configure Convex backend infrastructure
 - Implement theme system with 5 selectable themes
@@ -35,12 +35,13 @@ Establish the architectural foundation that enables all subsequent features by r
 
 ### Success Criteria
 
-1. CLI launches directly into Ink app (no Commander mode)
-2. State persists across CLI restarts (theme, layout mode)
-3. Convex dev server connects successfully
-4. All 5 themes render correctly with semantic colors
-5. Tab navigation (1, 2, 3 keys) switches pages
-6. AppShell displays Banner at top, Footer at bottom
+1. `zk-bank` launches interactive Ink app by default
+2. `zk-bank --help`, `zk-bank config`, `zk-bank chain status` work as CLI commands
+3. State persists across CLI restarts (theme, layout mode)
+4. Convex dev server connects successfully
+5. All 5 themes render correctly with semantic colors
+6. Tab navigation (Ctrl+1, Ctrl+2, Ctrl+3) switches pages
+7. AppShell displays Banner at top, Footer at bottom
 
 ### Dependencies
 
@@ -52,7 +53,7 @@ Establish the architectural foundation that enables all subsequent features by r
 ### Tech-Spec Reference
 
 [tech-spec.md](./tech-spec.md) - Complete technical specification including:
-- ADR-001: Ink-Only (No Commander)
+- ADR-001 revised: Ink-First with Essential CLI Commands
 - ADR-002: Jotai Over Context
 - ADR-005: Convex for Real-Time
 - Full source tree changes
@@ -65,13 +66,13 @@ Establish the architectural foundation that enables all subsequent features by r
 ```
 Epic: Foundation Infrastructure (13 points)
 │
-├── Story 1.1: Remove Commander.js (2 points)
+├── Story 1.1: Simplify CLI to Ink-First (2 points)
 │   Dependencies: None
-│   Outcome: Single-mode Ink CLI
+│   Outcome: Interactive default + essential CLI commands
 │
-├── Story 1.2: Add Jotai State Management (3 points)
+├── Story 1.2: Add Jotai + Error Infrastructure (3 points)
 │   Dependencies: Story 1.1
-│   Outcome: Centralized atomic state with persistence
+│   Outcome: Atomic state + named error classes
 │
 ├── Story 1.3: Add Convex Infrastructure (2 points)
 │   Dependencies: None (can parallel with 1.1/1.2)
@@ -90,16 +91,16 @@ Epic: Foundation Infrastructure (13 points)
 
 ## Stories - Epic 1
 
-### Story 1.1: Remove Commander.js
+### Story 1.1: Simplify CLI to Ink-First
 
-Removes dual-mode architecture per ADR-001.
+Simplifies to interactive-first with essential CLI commands (like Claude Code pattern).
 
 **Story Points:** 2
 **Prerequisites:** None
 
-### Story 1.2: Add Jotai State Management
+### Story 1.2: Add Jotai State Management + Error Infrastructure
 
-Implements atomic state management per ADR-002.
+Implements atomic state management per ADR-002 and expands error handling with named error classes.
 
 **Story Points:** 3
 **Prerequisites:** Story 1.1 (clean entry point)
@@ -135,7 +136,7 @@ Builds layout architecture with navigation.
 
 | Order | Story | Points | Can Start After |
 |-------|-------|--------|-----------------|
-| 1 | Story 1.1: Remove Commander | 2 | - |
+| 1 | Story 1.1: Ink-First CLI | 2 | - |
 | 1 | Story 1.3: Add Convex | 2 | - (parallel) |
 | 2 | Story 1.2: Add Jotai | 3 | Story 1.1 |
 | 3 | Story 1.4: Theme System | 3 | Story 1.2 |

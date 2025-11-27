@@ -80,7 +80,7 @@ cli/
 └── types/index.ts
 ```
 
-**Existing Patterns (MUST CONFORM):**
+**Existing Patterns (MUST RESPECT):**
 
 | Pattern | Implementation | Location |
 |---------|----------------|----------|
@@ -108,7 +108,7 @@ if (hasArgs) {
 
 ### Problem Statement
 
-The current CLI architecture has a dual-mode design (Commander for args, Ink for interactive) that conflicts with the product vision. Per ADR-001, zk-bank IS the interactive experience - there's no use case for non-interactive command execution in the social trading context.
+The current CLI architecture has extensive Commander commands (build, test, deploy, verify, etc.) that were scaffolded for Foundry development but don't align with the product vision. zk-bank is primarily an interactive trading experience, but like Claude Code, it should still support essential CLI commands for configuration, help, and quick status checks.
 
 Additionally, the codebase lacks:
 - Centralized state management (currently using React useState scattered across components)
@@ -120,7 +120,7 @@ Additionally, the codebase lacks:
 
 Implement the **Foundation Epic** - architectural infrastructure that enables all subsequent features:
 
-1. **Remove Commander.js** - Single entry point to Ink app
+1. **Simplify CLI to Ink-First** - Default to interactive, keep essential commands (help, version, config)
 2. **Add Jotai** - Centralized atomic state management
 3. **Add Convex** - Real-time backend infrastructure
 4. **Implement Theme System** - 5 selectable themes with semantic tokens
@@ -130,13 +130,14 @@ Implement the **Foundation Epic** - architectural infrastructure that enables al
 
 **In Scope:**
 
-- Remove Commander.js dependency and dual-mode logic
+- Simplify Commander to essential commands only (help, version, config)
 - Install and configure Jotai for state management
 - Install and configure Convex (schema, client setup)
 - Implement theme system with 5 themes from UX spec
 - Create AppShell layout components (Banner, Footer, TabNav)
 - Create placeholder pages (Dashboard, Trollbox, Chain)
-- Implement keyboard navigation (1, 2, 3 for tabs)
+- Implement keyboard navigation (Ctrl+1, Ctrl+2, Ctrl+3 for tabs)
+- Expand error infrastructure with named error classes
 - Local config persistence (~/.config/zk-bank/)
 
 **Out of Scope:**
@@ -156,13 +157,16 @@ Implement the **Foundation Epic** - architectural infrastructure that enables al
 
 | File | Action | Description |
 |------|--------|-------------|
-| `cli/index.ts` | MODIFY | Remove Commander, direct Ink launch |
+| `cli/index.ts` | MODIFY | Ink-first with minimal Commander commands |
 | `cli/app.tsx` | MODIFY | Replace command selector with AppShell |
-| `package.json` | MODIFY | Remove commander, add jotai + convex |
+| `package.json` | MODIFY | Add jotai + convex (keep commander) |
 | `cli/state/index.ts` | CREATE | Re-export all atoms |
 | `cli/state/atoms/theme.ts` | CREATE | themeAtom, layoutModeAtom |
 | `cli/state/atoms/navigation.ts` | CREATE | activePageAtom, inputModeAtom |
 | `cli/state/atoms/user.ts` | CREATE | userProfileAtom, walletAtom |
+| `cli/shared/errors.ts` | MODIFY | Add named error classes, multi-error support |
+| `cli/shared/errors/index.ts` | CREATE | Re-export error utilities |
+| `cli/shared/errors/types.ts` | CREATE | Error class definitions |
 | `cli/ui/themes/index.ts` | CREATE | Theme definitions (5 themes) |
 | `cli/ui/themes/types.ts` | CREATE | Theme interface |
 | `cli/ui/components/layout/AppShell.tsx` | CREATE | Root layout component |
@@ -180,26 +184,81 @@ Implement the **Foundation Epic** - architectural infrastructure that enables al
 | `cli/services/config/local.ts` | CREATE | Local config persistence |
 | `convex/schema.ts` | CREATE | Convex database schema |
 | `convex/tsconfig.json` | CREATE | Convex TypeScript config |
-| `cli/commands/*.ts` | DELETE | All Commander command files |
+| `cli/commands/config.ts` | CREATE | Config management command (theme, etc.) |
+| `cli/commands/build.ts` | DELETE | Not needed for trading app |
+| `cli/commands/test.ts` | DELETE | Not needed for trading app |
+| `cli/commands/test-tree.ts` | DELETE | Not needed for trading app |
+| `cli/commands/deploy.ts` | DELETE | Not needed for trading app |
+| `cli/commands/verify.ts` | DELETE | Not needed for trading app |
+| `cli/commands/prompts.ts` | DELETE | Not needed for trading app |
+| `cli/commands/utils.ts` | DELETE | Not needed for trading app |
+| `cli/commands/chain.ts` | KEEP | Useful for chain status/control |
+| `cli/commands/registry.ts` | DELETE | Not needed for trading app |
 | `cli/components/Header.tsx` | DELETE | Replaced by Banner |
 | `cli/components/CommandRunner.tsx` | DELETE | No longer needed |
 | `cli/components/types.ts` | DELETE | CommandDefinition obsolete |
 
 ### Technical Approach
 
-**1. Commander Removal (ADR-001)**
+**1. Ink-First CLI with Essential Commands (ADR-001 revised)**
 
-Remove dual-mode logic entirely. The CLI entry point becomes:
+Keep Commander for essential commands, but default to Ink interactive mode. Similar to Claude Code pattern:
 
 ```typescript
-// cli/index.ts - NEW
+// cli/index.ts - UPDATED
 #!/usr/bin/env bun
+import { Command } from 'commander'
 import { render } from 'ink'
 import React from 'react'
-import { App } from './app'
 
-render(<App />)
+const program = new Command()
+
+program
+  .name('zk-bank')
+  .description('Social trading CLI for DeFi')
+  .version('1.0.0')
+
+// Essential commands (non-interactive)
+program
+  .command('config')
+  .description('Manage configuration')
+  .argument('[key]', 'Config key to get/set')
+  .argument('[value]', 'Value to set')
+  .action(async (key, value) => {
+    const { handleConfig } = await import('./commands/config')
+    await handleConfig(key, value)
+  })
+
+program
+  .command('chain')
+  .description('Chain status and control')
+  .argument('[action]', 'status|mine|warp|reset')
+  .action(async (action) => {
+    const { handleChain } = await import('./commands/chain')
+    await handleChain(action)
+  })
+
+// Default: Launch interactive Ink app (no subcommand)
+program.action(async () => {
+  const { App } = await import('./app')
+  render(<App />)
+})
+
+program.parse()
 ```
+
+**Supported CLI Commands:**
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `zk-bank` | Launch interactive app (default) | `zk-bank` |
+| `zk-bank --help` | Show help | `zk-bank --help` |
+| `zk-bank --version` | Show version | `zk-bank --version` |
+| `zk-bank config` | Show all config | `zk-bank config` |
+| `zk-bank config theme` | Get theme | `zk-bank config theme` |
+| `zk-bank config theme dracula` | Set theme | `zk-bank config theme dracula` |
+| `zk-bank chain status` | Quick chain status | `zk-bank chain status` |
+| `zk-bank chain mine 10` | Mine blocks | `zk-bank chain mine 10` |
 
 **2. Jotai State Management (ADR-002)**
 
@@ -301,7 +360,7 @@ export type LayoutMode = 'chat' | 'dense'
 │   (Dashboard | Trollbox | Chain)        │
 │                                         │
 ├─────────────────────────────────────────┤
-│ FOOTER - [1] [2] [3] tabs, hints        │
+│ FOOTER - [^1] [^2] [^3] tabs, hints     │
 └─────────────────────────────────────────┘
 ```
 
@@ -493,7 +552,7 @@ export async function writePreferences(prefs: Preferences): Promise<void> {
 
 ### Keyboard Navigation
 
-Global handler for tab switching and shortcuts:
+Global handler for tab switching and shortcuts. **Important:** Tab navigation uses `Ctrl+` modifiers to avoid conflicts with text input fields.
 
 ```typescript
 // cli/hooks/useKeyboard.ts
@@ -505,10 +564,10 @@ export function useKeyboard() {
   const setActivePage = useSetAtom(activePageAtom)
 
   useInput((input, key) => {
-    // Tab navigation
-    if (input === '1') setActivePage('dashboard')
-    if (input === '2') setActivePage('trollbox')
-    if (input === '3') setActivePage('chain')
+    // Tab navigation (Ctrl+number to avoid text input conflicts)
+    if (key.ctrl && input === '1') setActivePage('dashboard')
+    if (key.ctrl && input === '2') setActivePage('trollbox')
+    if (key.ctrl && input === '3') setActivePage('chain')
 
     // Theme cycling
     if (key.ctrl && input === 't') {
@@ -523,11 +582,135 @@ export function useKeyboard() {
 }
 ```
 
+### Error Infrastructure
+
+Expand the existing `Result<T, E>` pattern with named error classes for consistent error handling across the codebase:
+
+```typescript
+// cli/shared/errors/types.ts
+
+/** Base error class for all zk-bank errors */
+export class ZkBankError extends Error {
+  readonly code: string
+  readonly context?: Record<string, unknown>
+
+  constructor(message: string, code: string, context?: Record<string, unknown>) {
+    super(message)
+    this.name = this.constructor.name
+    this.code = code
+    this.context = context
+  }
+}
+
+/** Configuration/environment errors */
+export class ConfigError extends ZkBankError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, 'CONFIG_ERROR', context)
+  }
+}
+
+/** Network/RPC errors */
+export class NetworkError extends ZkBankError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, 'NETWORK_ERROR', context)
+  }
+}
+
+/** Convex backend errors */
+export class ConvexError extends ZkBankError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, 'CONVEX_ERROR', context)
+  }
+}
+
+/** Wallet/signing errors */
+export class WalletError extends ZkBankError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, 'WALLET_ERROR', context)
+  }
+}
+
+/** Validation errors (can contain multiple issues) */
+export class ValidationError extends ZkBankError {
+  readonly issues: ValidationIssue[]
+
+  constructor(message: string, issues: ValidationIssue[]) {
+    super(message, 'VALIDATION_ERROR', { issues })
+    this.issues = issues
+  }
+}
+
+export interface ValidationIssue {
+  field: string
+  message: string
+  code?: string
+}
+
+/** Multi-error container for operations that can fail in multiple ways */
+export class AggregateError extends ZkBankError {
+  readonly errors: ZkBankError[]
+
+  constructor(message: string, errors: ZkBankError[]) {
+    super(message, 'AGGREGATE_ERROR', { errorCount: errors.length })
+    this.errors = errors
+  }
+}
+```
+
+```typescript
+// cli/shared/errors/index.ts - updated exports
+export * from './types'
+export { tryCatch, tryCatchSync, type Result } from '../errors'
+
+// Helper for creating validation errors
+export function validationError(issues: ValidationIssue[]): ValidationError {
+  const message = issues.map(i => `${i.field}: ${i.message}`).join('; ')
+  return new ValidationError(message, issues)
+}
+
+// Helper for aggregating multiple errors
+export function aggregateErrors(errors: ZkBankError[]): AggregateError {
+  return new AggregateError(`${errors.length} errors occurred`, errors)
+}
+
+// Type guard for checking error types
+export function isZkBankError(error: unknown): error is ZkBankError {
+  return error instanceof ZkBankError
+}
+```
+
+**Usage Pattern:**
+```typescript
+import { tryCatch, ConfigError, ValidationError, validationError } from '@/shared/errors'
+
+// Single typed error
+async function loadConfig(): Promise<Result<Config, ConfigError>> {
+  const file = Bun.file(configPath)
+  if (!await file.exists()) {
+    return { data: null, error: new ConfigError('Config file not found', { path: configPath }) }
+  }
+  return tryCatch(file.json())
+}
+
+// Multiple validation issues
+function validateUser(input: unknown): Result<User, ValidationError> {
+  const issues: ValidationIssue[] = []
+  if (!input.username) issues.push({ field: 'username', message: 'Required' })
+  if (!input.wallet) issues.push({ field: 'wallet', message: 'Required' })
+
+  if (issues.length > 0) {
+    return { data: null, error: validationError(issues) }
+  }
+  return { data: input as User, error: null }
+}
+```
+
 ### Convex Client Setup
 
 ```typescript
 // cli/services/convex/client.ts
 import { ConvexClient } from 'convex/browser'
+import { ConfigError } from '@/shared/errors'
 
 let client: ConvexClient | null = null
 
@@ -535,7 +718,9 @@ export function getConvexClient(): ConvexClient {
   if (!client) {
     const url = process.env.CONVEX_URL
     if (!url) {
-      throw new Error('CONVEX_URL not set. Run: bunx convex dev')
+      throw new ConfigError('CONVEX_URL not set. Run: bunx convex dev', {
+        envVar: 'CONVEX_URL'
+      })
     }
     client = new ConvexClient(url)
   }
@@ -548,22 +733,19 @@ export function getConvexClient(): ConvexClient {
 ## Development Setup
 
 ```bash
-# 1. Install new dependencies
+# 1. Install new dependencies (keep commander)
 bun add jotai convex
 
-# 2. Remove Commander
-bun remove commander
-
-# 3. Initialize Convex
+# 2. Initialize Convex
 bunx convex init
 
-# 4. Start Convex dev server (Terminal 1)
+# 3. Start Convex dev server (Terminal 1)
 bunx convex dev
 
-# 5. Start local chain (Terminal 2) - optional for this epic
+# 4. Start local chain (Terminal 2) - optional for this epic
 anvil --fork-url $RPC_URL
 
-# 6. Run CLI (Terminal 3)
+# 5. Run CLI (Terminal 3)
 bun cli
 ```
 
@@ -574,18 +756,19 @@ bun cli
 ### Setup Steps
 
 1. Create feature branch: `git checkout -b feat/foundation-epic`
-2. Install dependencies: `bun add jotai convex && bun remove commander`
+2. Install dependencies: `bun add jotai convex`
 3. Initialize Convex: `bunx convex init`
 4. Create directory structure for new files
 5. Add path aliases to tsconfig.json
 
 ### Implementation Steps
 
-**Story 1: Remove Commander (ADR-001)**
-1. Delete `cli/commands/*.ts` files
-2. Simplify `cli/index.ts` to direct Ink render
-3. Remove Commander from package.json
-4. Update any imports that reference commands
+**Story 1: Simplify CLI to Ink-First (ADR-001 revised)**
+1. Delete unnecessary command files (build, test, deploy, verify, prompts, utils, registry)
+2. Keep and update `cli/commands/chain.ts` for chain control
+3. Create `cli/commands/config.ts` for configuration management
+4. Update `cli/index.ts` to Ink-first with essential Commander commands
+5. Test: `zk-bank` launches interactive, `zk-bank --help` shows commands
 
 **Story 2: Add Jotai State Management (ADR-002)**
 1. Create `cli/state/` directory structure
@@ -613,7 +796,7 @@ bun cli
 3. Create TabNav component
 4. Create AppShell wrapper
 5. Create placeholder pages (Dashboard, Trollbox, Chain)
-6. Implement keyboard navigation (1, 2, 3)
+6. Implement keyboard navigation (Ctrl+1, Ctrl+2, Ctrl+3)
 7. Wire up in app.tsx
 
 ### Testing Strategy
@@ -627,11 +810,14 @@ bun cli
 
 ### Acceptance Criteria
 
-**Story 1 - Commander Removal:**
-- [ ] `bun cli` launches Ink app directly
-- [ ] `bun cli build` no longer works (expected)
-- [ ] No Commander code remains in codebase
-- [ ] Package.json has no commander dependency
+**Story 1 - Ink-First CLI:**
+- [ ] `bun cli` launches Ink app directly (default action)
+- [ ] `bun cli --help` shows available commands
+- [ ] `bun cli --version` shows version
+- [ ] `bun cli config theme` gets current theme
+- [ ] `bun cli config theme dracula` sets theme
+- [ ] `bun cli chain status` shows chain status
+- [ ] Foundry-specific commands removed (build, test, deploy, verify)
 
 **Story 2 - Jotai Setup:**
 - [ ] Atoms importable from `@/state`
@@ -653,8 +839,8 @@ bun cli
 
 **Story 5 - AppShell:**
 - [ ] Banner shows at top
-- [ ] Footer shows at bottom with [1] [2] [3]
-- [ ] Keys 1, 2, 3 switch pages
+- [ ] Footer shows at bottom with [Ctrl+1] [Ctrl+2] [Ctrl+3]
+- [ ] Ctrl+1, Ctrl+2, Ctrl+3 switch pages
 - [ ] Active tab visually indicated
 - [ ] Placeholder pages render
 
@@ -665,6 +851,8 @@ bun cli
 ### File Paths Reference
 
 **New Files:**
+- `/cli/shared/errors/types.ts`
+- `/cli/shared/errors/index.ts`
 - `/cli/state/index.ts`
 - `/cli/state/atoms/theme.ts`
 - `/cli/state/atoms/navigation.ts`
@@ -693,6 +881,10 @@ bun cli
 - `/package.json`
 - `/tsconfig.json`
 
+**Modified/Kept Files:**
+- `/cli/commands/chain.ts` - KEEP and update for new structure
+- `/cli/commands/config.ts` - CREATE for config management
+
 **Deleted Files:**
 - `/cli/commands/build.ts`
 - `/cli/commands/test.ts`
@@ -701,7 +893,6 @@ bun cli
 - `/cli/commands/verify.ts`
 - `/cli/commands/prompts.ts`
 - `/cli/commands/utils.ts`
-- `/cli/commands/chain.ts`
 - `/cli/commands/registry.ts`
 - `/cli/components/Header.tsx`
 - `/cli/components/CommandRunner.tsx`
@@ -741,12 +932,12 @@ bun cli
 - AppShell (CREATE) - Layout wrapper
 
 **Keyboard Interactions:**
-- `1` - Switch to Dashboard
-- `2` - Switch to Trollbox
-- `3` - Switch to Chain
+- `Ctrl+1` - Switch to Dashboard
+- `Ctrl+2` - Switch to Trollbox
+- `Ctrl+3` - Switch to Chain
 - `Ctrl+T` - Cycle theme
 - `Ctrl+D` - Toggle layout density
-- `q` - Quit application
+- `Ctrl+Q` - Quit application
 
 **Visual Patterns:**
 - Flush Grid design (no boxes, bg color separation)

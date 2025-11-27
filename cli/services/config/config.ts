@@ -126,7 +126,7 @@ export function validateConfig<K extends keyof Config>(
   }
 
   // Validate chainId is a number
-  if (config.chainId !== undefined && isNaN(config.chainId)) {
+  if (config.chainId !== undefined && Number.isNaN(config.chainId)) {
     invalid.push("chainId must be a valid number");
   }
 
@@ -174,19 +174,23 @@ export function getChainCustomParams(chainId: number): {
       forgeScriptParams.push("--slow");
       forgeBuildParams.push("--zksync");
       break;
+    default:
+      // No custom params for other chains
+      break;
   }
 
   return { forgeScriptParams, forgeBuildParams };
 }
 
 export function getSolcVersion(): string {
+  const { SOLC_VERSION_REGEX, DEFAULT_SOLC_VERSION } = require("../constants");
   try {
-    const foundryToml = Bun.file("foundry.toml");
+    const _foundryToml = Bun.file("foundry.toml");
     // Quick sync read for config
-    const content = require("fs").readFileSync("foundry.toml", "utf-8");
-    const match = content.match(/solc\s*=\s*["']?([^"'\s]+)["']?/);
-    return match?.[1] || "0.8.28";
+    const content = require("node:fs").readFileSync("foundry.toml", "utf-8");
+    const match = content.match(SOLC_VERSION_REGEX);
+    return match?.[1] || DEFAULT_SOLC_VERSION;
   } catch {
-    return "0.8.28";
+    return DEFAULT_SOLC_VERSION;
   }
 }

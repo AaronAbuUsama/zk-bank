@@ -57,7 +57,7 @@ Ink provides the component primitives (`<Box>`, `<Text>`) but no design system. 
 **The ONE thing:** Trade from the trollbox via natural language
 
 **How it works:**
-1. User types in trollbox input: "2x long ETH"
+1. User types in trollbox input: "/trade 2x long ETH with my degen vault"
 2. Agent parses intent (private)
 3. Position preview appears ABOVE chat input (private to user)
 4. User confirms or modifies
@@ -397,7 +397,7 @@ Both layouts share:
 | Mode | Indicator | Behavior |
 |------|-----------|----------|
 | **Chat** (default) | `>` prompt | Messages broadcast to trollbox |
-| **Agent** | `◆` prompt + "AGENT" tag | Natural language → trade parsing |
+| **Agent** | `◆` prompt + "AGENT" tag + color border changes | Natural language → trade parsing |
 
 **Mode Switching:** `Ctrl+Tab` to toggle (like Claude Code)
 

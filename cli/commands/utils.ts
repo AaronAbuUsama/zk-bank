@@ -1,12 +1,23 @@
 // Utility commands: storage, refund, gas-price, balance, nonce
 
+import { createInterface } from "node:readline";
 import type { Command } from "commander";
-import { createInterface } from "readline";
-import * as cast from "../lib/cast";
-import { loadConfig, validateConfig } from "../lib/config";
-import * as forge from "../lib/forge";
+import {
+  balance,
+  gasPrice,
+  send,
+  sendStreaming,
+  toUnit,
+  walletAddress,
+} from "../lib/cast";
+import { loadConfig, validateConfigOrExit } from "../lib/config";
+import { inspect } from "../lib/forge";
 
-async function confirm(message: string): Promise<boolean> {
+/**
+ * Prompts user for confirmation via terminal.
+ * Returns a Promise that resolves with user's yes/no answer.
+ */
+function confirm(message: string): Promise<boolean> {
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -26,7 +37,7 @@ export function registerUtilCommands(program: Command): void {
     .description("Show storage layout of a contract")
     .argument("<contract>", "Contract path (e.g., src/MyContract.sol)")
     .action(async (contract) => {
-      const result = await forge.inspect(contract, "storageLayout");
+      const result = await inspect(contract, "storageLayout");
 
       if (result.success) {
         console.log(result.output);
@@ -40,21 +51,17 @@ export function registerUtilCommands(program: Command): void {
     .command("gas-price")
     .description("Show current gas price")
     .action(async () => {
-      const config = loadConfig();
-
-      try {
-        validateConfig(config, ["rpcUrl", "networkName"]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        process.exit(1);
-      }
+      const config = validateConfigOrExit(loadConfig(), [
+        "rpcUrl",
+        "networkName",
+      ]);
 
       console.log(`Gas price (${config.networkName}):`);
 
-      const gasPrice = await cast.gasPrice(config.rpcUrl!);
-      if (gasPrice !== null) {
-        const gasPriceGwei = await cast.toUnit(gasPrice, "gwei");
-        console.log(`  ${gasPrice} wei`);
+      const currentGasPrice = await gasPrice(config.rpcUrl);
+      if (currentGasPrice !== null) {
+        const gasPriceGwei = await toUnit(currentGasPrice, "gwei");
+        console.log(`  ${currentGasPrice} wei`);
         if (gasPriceGwei) {
           console.log(`  ${gasPriceGwei} gwei`);
         }
@@ -68,20 +75,13 @@ export function registerUtilCommands(program: Command): void {
     .command("balance")
     .description("Show deployment account balance")
     .action(async () => {
-      const config = loadConfig();
+      const config = validateConfigOrExit(loadConfig(), [
+        "rpcUrl",
+        "networkName",
+        "deploymentPrivateKey",
+      ]);
 
-      try {
-        validateConfig(config, [
-          "rpcUrl",
-          "networkName",
-          "deploymentPrivateKey",
-        ]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        process.exit(1);
-      }
-
-      const address = await cast.walletAddress(config.deploymentPrivateKey!);
+      const address = await walletAddress(config.deploymentPrivateKey);
       if (!address) {
         console.error("Failed to derive address from private key");
         process.exit(1);
@@ -89,10 +89,10 @@ export function registerUtilCommands(program: Command): void {
 
       console.log(`Balance of ${address} (${config.networkName}):`);
 
-      const balance = await cast.balance(address, config.rpcUrl!);
-      if (balance !== null) {
-        const balanceEther = await cast.toUnit(balance, "ether");
-        console.log(`  ${balance} wei`);
+      const currentBalance = await balance(address, config.rpcUrl);
+      if (currentBalance !== null) {
+        const balanceEther = await toUnit(currentBalance, "ether");
+        console.log(`  ${currentBalance} wei`);
         if (balanceEther) {
           console.log(`  ${balanceEther} ETH`);
         }
@@ -106,20 +106,12 @@ export function registerUtilCommands(program: Command): void {
     .command("refund")
     .description("Refund remaining balance from deployment account")
     .action(async () => {
-      const config = loadConfig();
-
-      try {
-        validateConfig(config, [
-          "rpcUrl",
-          "networkName",
-          "deploymentPrivateKey",
-          "refundAddress",
-        ]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        console.error("\nSet REFUND_ADDRESS in your .env file");
-        process.exit(1);
-      }
+      const config = validateConfigOrExit(loadConfig(), [
+        "rpcUrl",
+        "networkName",
+        "deploymentPrivateKey",
+        "refundAddress",
+      ]);
 
       if (
         config.refundAddress === "0x0000000000000000000000000000000000000000"
@@ -128,7 +120,7 @@ export function registerUtilCommands(program: Command): void {
         process.exit(1);
       }
 
-      const address = await cast.walletAddress(config.deploymentPrivateKey!);
+      const address = await walletAddress(config.deploymentPrivateKey);
       if (!address) {
         console.error("Failed to derive address from private key");
         process.exit(1);
@@ -136,26 +128,26 @@ export function registerUtilCommands(program: Command): void {
 
       console.log(`Refunding remaining balance on ${address}`);
 
-      const balance = await cast.balance(address, config.rpcUrl!);
-      const gasPrice = await cast.gasPrice(config.rpcUrl!);
+      const currentBalance = await balance(address, config.rpcUrl);
+      const currentGasPrice = await gasPrice(config.rpcUrl);
 
-      if (balance === null || gasPrice === null) {
+      if (currentBalance === null || currentGasPrice === null) {
         console.error("Failed to get balance or gas price");
         process.exit(1);
       }
 
-      const gasCost = gasPrice * 21000n;
-      const remaining = balance - gasCost;
+      const gasCost = currentGasPrice * 21000n;
+      const remaining = currentBalance - gasCost;
 
       if (remaining <= 0n) {
-        const balanceEther = await cast.toUnit(balance, "ether");
-        const minRequired = await cast.toUnit(gasCost, "ether");
+        const balanceEther = await toUnit(currentBalance, "ether");
+        const minRequired = await toUnit(gasCost, "ether");
         console.error(`No balance can be refunded: ${balanceEther} ETH`);
         console.error(`Minimum required for gas: ${minRequired} ETH`);
         process.exit(1);
       }
 
-      const remainingEther = await cast.toUnit(remaining, "ether");
+      const remainingEther = await toUnit(remaining, "ether");
       console.log("\nSummary:");
       console.log(`  Refunding: ${remainingEther} ETH (${remaining} wei)`);
       console.log(`  Recipient: ${config.refundAddress}`);
@@ -166,10 +158,10 @@ export function registerUtilCommands(program: Command): void {
         process.exit(0);
       }
 
-      const result = await cast.send({
-        privateKey: config.deploymentPrivateKey!,
-        rpcUrl: config.rpcUrl!,
-        to: config.refundAddress!,
+      const result = await send({
+        privateKey: config.deploymentPrivateKey,
+        rpcUrl: config.rpcUrl,
+        to: config.refundAddress,
         value: remaining,
       });
 
@@ -193,16 +185,12 @@ export function registerUtilCommands(program: Command): void {
     .description("Clear a stuck transaction by sending 0 value to self")
     .argument("<nonce>", "Nonce to clear")
     .action(async (nonceValue) => {
-      const config = loadConfig();
+      const config = validateConfigOrExit(loadConfig(), [
+        "rpcUrl",
+        "deploymentPrivateKey",
+      ]);
 
-      try {
-        validateConfig(config, ["rpcUrl", "deploymentPrivateKey"]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        process.exit(1);
-      }
-
-      const address = await cast.walletAddress(config.deploymentPrivateKey!);
+      const address = await walletAddress(config.deploymentPrivateKey);
       if (!address) {
         console.error("Failed to derive address from private key");
         process.exit(1);
@@ -210,9 +198,9 @@ export function registerUtilCommands(program: Command): void {
 
       console.log(`Clearing nonce ${nonceValue} for ${address}`);
 
-      const exitCode = await cast.sendStreaming({
-        privateKey: config.deploymentPrivateKey!,
-        rpcUrl: config.rpcUrl!,
+      const exitCode = await sendStreaming({
+        privateKey: config.deploymentPrivateKey,
+        rpcUrl: config.rpcUrl,
         to: address,
         value: 0n,
         nonce: Number.parseInt(nonceValue, 10),
@@ -226,16 +214,12 @@ export function registerUtilCommands(program: Command): void {
     .description("Clear multiple stuck transactions")
     .argument("<nonces...>", "Nonces to clear")
     .action(async (nonces) => {
-      const config = loadConfig();
+      const config = validateConfigOrExit(loadConfig(), [
+        "rpcUrl",
+        "deploymentPrivateKey",
+      ]);
 
-      try {
-        validateConfig(config, ["rpcUrl", "deploymentPrivateKey"]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        process.exit(1);
-      }
-
-      const address = await cast.walletAddress(config.deploymentPrivateKey!);
+      const address = await walletAddress(config.deploymentPrivateKey);
       if (!address) {
         console.error("Failed to derive address from private key");
         process.exit(1);
@@ -244,9 +228,9 @@ export function registerUtilCommands(program: Command): void {
       for (const nonceValue of nonces) {
         console.log(`\nClearing nonce ${nonceValue}...`);
 
-        const result = await cast.send({
-          privateKey: config.deploymentPrivateKey!,
-          rpcUrl: config.rpcUrl!,
+        const result = await send({
+          privateKey: config.deploymentPrivateKey,
+          rpcUrl: config.rpcUrl,
           to: address,
           value: 0n,
           nonce: Number.parseInt(nonceValue, 10),
@@ -276,13 +260,13 @@ export function registerUtilCommands(program: Command): void {
       );
 
       if (config.deploymentPrivateKey && config.rpcUrl) {
-        const address = await cast.walletAddress(config.deploymentPrivateKey);
+        const address = await walletAddress(config.deploymentPrivateKey);
         if (address) {
           console.log(`  Deployment Address: ${address}`);
 
-          const balance = await cast.balance(address, config.rpcUrl);
-          if (balance !== null) {
-            const balanceEther = await cast.toUnit(balance, "ether");
+          const currentBalance = await balance(address, config.rpcUrl);
+          if (currentBalance !== null) {
+            const balanceEther = await toUnit(currentBalance, "ether");
             console.log(`  Balance: ${balanceEther} ETH`);
           }
         }

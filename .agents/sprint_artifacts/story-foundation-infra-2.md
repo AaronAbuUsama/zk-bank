@@ -1,4 +1,4 @@
-# Story 1.2: Add Jotai State Management
+# Story 1.2: Add Jotai State Management + Error Infrastructure
 
 **Status:** Draft
 
@@ -7,8 +7,8 @@
 ## User Story
 
 As a **developer**,
-I want **centralized atomic state management with persistence**,
-So that **application state is predictable, components have minimal re-renders, and user preferences survive CLI restarts**.
+I want **centralized atomic state management with persistence and a robust error handling infrastructure**,
+So that **application state is predictable, errors are consistently typed and handled, and user preferences survive CLI restarts**.
 
 ---
 
@@ -19,7 +19,11 @@ So that **application state is predictable, components have minimal re-renders, 
 3. **AC #3:** Theme preference persists to `~/.config/zk-bank/preferences.json`
 4. **AC #4:** Layout mode preference persists across CLI restarts
 5. **AC #5:** No React Context boilerplate required for state access
-6. **AC #6:** Path aliases work in tsconfig.json (`@/state`, `@/ui`, `@/hooks`)
+6. **AC #6:** Path aliases work in tsconfig.json (`@/state`, `@/ui`, `@/hooks`, `@/shared`)
+7. **AC #7:** Named error classes exist (ZkBankError, ConfigError, NetworkError, ValidationError, etc.)
+8. **AC #8:** ValidationError supports multiple issues
+9. **AC #9:** AggregateError supports collecting multiple errors
+10. **AC #10:** Error utilities importable from `@/shared/errors`
 
 ---
 
@@ -61,13 +65,59 @@ So that **application state is predictable, components have minimal re-renders, 
   - [ ] Use XDG Base Directory spec (~/.config/zk-bank/)
 - [ ] Create re-export index (AC: #2)
   - [ ] Export all atoms from `cli/state/index.ts`
+- [ ] Expand error infrastructure (AC: #7, #8, #9, #10)
+  - [ ] Create `cli/shared/errors/types.ts`
+  - [ ] Implement ZkBankError base class with code and context
+  - [ ] Implement ConfigError extends ZkBankError
+  - [ ] Implement NetworkError extends ZkBankError
+  - [ ] Implement ConvexError extends ZkBankError
+  - [ ] Implement WalletError extends ZkBankError
+  - [ ] Implement ValidationError with issues array (AC: #8)
+  - [ ] Implement AggregateError for multiple errors (AC: #9)
+  - [ ] Create `cli/shared/errors/index.ts` with helpers
+  - [ ] Add validationError() helper function
+  - [ ] Add aggregateErrors() helper function
+  - [ ] Add isZkBankError() type guard
 - [ ] Verify persistence works (AC: #3, #4)
   - [ ] Set theme, restart CLI, verify theme restored
   - [ ] Set layout mode, restart CLI, verify mode restored
+- [ ] Verify error infrastructure (AC: #7, #10)
+  - [ ] Import error classes from `@/shared/errors`
+  - [ ] Test ValidationError with multiple issues
 
 ### Technical Summary
 
-This story implements ADR-002 (Jotai Over Context). Jotai provides atomic state without Provider boilerplate - atoms are importable anywhere and trigger surgical re-renders.
+This story implements ADR-002 (Jotai Over Context) and expands the error handling infrastructure. Jotai provides atomic state without Provider boilerplate - atoms are importable anywhere and trigger surgical re-renders.
+
+**Error Infrastructure Expansion:**
+
+The existing `Result<T, E>` pattern is good but needs named error classes for:
+- Consistent error handling across the codebase
+- Rich error context (code, metadata)
+- Multi-error scenarios (validation with multiple issues)
+- Type-safe error checking
+
+```typescript
+// cli/shared/errors/types.ts
+export class ZkBankError extends Error {
+  readonly code: string
+  readonly context?: Record<string, unknown>
+  constructor(message: string, code: string, context?: Record<string, unknown>) {
+    super(message)
+    this.name = this.constructor.name
+    this.code = code
+    this.context = context
+  }
+}
+
+export class ValidationError extends ZkBankError {
+  readonly issues: ValidationIssue[]
+  constructor(message: string, issues: ValidationIssue[]) {
+    super(message, 'VALIDATION_ERROR', { issues })
+    this.issues = issues
+  }
+}
+```
 
 **Key Implementation:**
 
@@ -99,8 +149,10 @@ cli/state/
 
 ### Project Structure Notes
 
-- **Files to modify:** `tsconfig.json`
+- **Files to modify:** `tsconfig.json`, `cli/shared/errors.ts` (keep existing, add re-exports)
 - **Files to create:**
+  - `cli/shared/errors/types.ts`
+  - `cli/shared/errors/index.ts`
   - `cli/state/index.ts`
   - `cli/state/atoms/theme.ts`
   - `cli/state/atoms/navigation.ts`

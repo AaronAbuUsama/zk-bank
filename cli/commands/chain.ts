@@ -31,7 +31,7 @@ function parseEther(value: string): string {
   // Convert ETH to wei (hex)
   const eth = Number.parseFloat(value);
   const wei = BigInt(Math.floor(eth * 1e18));
-  return "0x" + wei.toString(16);
+  return `0x${wei.toString(16)}`;
 }
 
 export function registerChainCommands(program: Command): void {
@@ -43,8 +43,8 @@ export function registerChainCommands(program: Command): void {
     .command("mine [blocks]")
     .description("Mine blocks (default: 1)")
     .option("-i, --interval <seconds>", "Time interval between blocks", "1")
-    .action(async (blocks = "1", options) => {
-      const config = loadConfig();
+    .action(async (blocks, options) => {
+      const _config = loadConfig();
       const numBlocks = Number.parseInt(blocks, 10);
       const interval = Number.parseInt(options.interval, 10);
 
@@ -52,8 +52,8 @@ export function registerChainCommands(program: Command): void {
 
       // anvil_mine takes hex values
       await rpcCall("anvil_mine", [
-        "0x" + numBlocks.toString(16),
-        "0x" + interval.toString(16),
+        `0x${numBlocks.toString(16)}`,
+        `0x${interval.toString(16)}`,
       ]);
 
       // Get new block number

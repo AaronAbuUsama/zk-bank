@@ -6,7 +6,8 @@
     "zk-bank": "./cli/index.ts"
   },
   "scripts": {
-    "full-check": "bun x ultracite@fix",
+    "full-check": "bun x ultracite fix",
+    "biome:summary": "biome check . --reporter summary",
     "cli": "bun run cli/index.ts",
     "build": "bun cli init",
     "clean": "bun cli clean",

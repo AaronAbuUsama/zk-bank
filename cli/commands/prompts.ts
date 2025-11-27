@@ -9,7 +9,7 @@ import {
   TEST_TREE_GENERATION_PROMPT,
 } from "../lib/templates";
 
-async function readFileContent(path: string): Promise<string> {
+function readFileContent(path: string): Promise<string> {
   if (!existsSync(path)) {
     throw new Error(`File not found: ${path}`);
   }

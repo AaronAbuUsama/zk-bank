@@ -117,6 +117,7 @@ export default defineSchema({
 ```typescript
 // cli/services/convex/client.ts
 import { ConvexClient } from 'convex/browser'
+import { ConfigError } from '@/shared/errors'
 
 let client: ConvexClient | null = null
 
@@ -124,7 +125,9 @@ export function getConvexClient(): ConvexClient {
   if (!client) {
     const url = process.env.CONVEX_URL
     if (!url) {
-      throw new Error('CONVEX_URL not set. Run: bunx convex dev')
+      throw new ConfigError('CONVEX_URL not set. Run: bunx convex dev', {
+        envVar: 'CONVEX_URL'
+      })
     }
     client = new ConvexClient(url)
   }

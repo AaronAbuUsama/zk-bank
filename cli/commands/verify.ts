@@ -2,7 +2,7 @@
 
 import { existsSync } from "node:fs";
 import type { Command } from "commander";
-import { loadConfig, validateConfig } from "../lib/config";
+import { loadConfig, validateConfigOrExit } from "../lib/config";
 import { type VerifierConfig, verifyFromBroadcast } from "../lib/verifier";
 import type { VerifierType } from "../types";
 
@@ -16,16 +16,12 @@ export function registerVerifyCommands(program: Command): void {
     )
     .option("--broadcast <path>", "Path to broadcast JSON file")
     .action(async (options) => {
-      const config = loadConfig();
+      const config = validateConfigOrExit(loadConfig(), [
+        "chainId",
+        "verifier",
+      ]);
 
-      try {
-        validateConfig(config, ["chainId", "verifier"]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        process.exit(1);
-      }
-
-      const verifierType: VerifierType = options.verifier || config.verifier!;
+      const verifierType: VerifierType = options.verifier || config.verifier;
 
       // Find broadcast file
       let broadcastPath = options.broadcast;
@@ -53,7 +49,7 @@ export function registerVerifyCommands(program: Command): void {
 
       const verifierConfig: VerifierConfig = {
         type: verifierType,
-        chainId: config.chainId!,
+        chainId: config.chainId,
         apiKey: config.verifierApiKey,
         blockscoutHostName: config.blockscoutHostName,
       };
@@ -66,13 +62,7 @@ export function registerVerifyCommands(program: Command): void {
     .command("verify:etherscan")
     .description("Verify contracts on Etherscan")
     .action(async () => {
-      const config = loadConfig();
-      try {
-        validateConfig(config, ["chainId"]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        process.exit(1);
-      }
+      const config = validateConfigOrExit(loadConfig(), ["chainId"]);
 
       const broadcastPath = `broadcast/Deploy.s.sol/${config.chainId}/run-latest.json`;
 
@@ -83,7 +73,7 @@ export function registerVerifyCommands(program: Command): void {
 
       await verifyFromBroadcast(broadcastPath, {
         type: "etherscan",
-        chainId: config.chainId!,
+        chainId: config.chainId,
         apiKey: config.verifierApiKey,
       });
     });
@@ -92,13 +82,10 @@ export function registerVerifyCommands(program: Command): void {
     .command("verify:blockscout")
     .description("Verify contracts on Blockscout")
     .action(async () => {
-      const config = loadConfig();
-      try {
-        validateConfig(config, ["chainId", "blockscoutHostName"]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        process.exit(1);
-      }
+      const config = validateConfigOrExit(loadConfig(), [
+        "chainId",
+        "blockscoutHostName",
+      ]);
 
       const broadcastPath = `broadcast/Deploy.s.sol/${config.chainId}/run-latest.json`;
 
@@ -109,7 +96,7 @@ export function registerVerifyCommands(program: Command): void {
 
       await verifyFromBroadcast(broadcastPath, {
         type: "blockscout",
-        chainId: config.chainId!,
+        chainId: config.chainId,
         blockscoutHostName: config.blockscoutHostName,
       });
     });
@@ -118,13 +105,7 @@ export function registerVerifyCommands(program: Command): void {
     .command("verify:sourcify")
     .description("Verify contracts on Sourcify")
     .action(async () => {
-      const config = loadConfig();
-      try {
-        validateConfig(config, ["chainId"]);
-      } catch (error) {
-        console.error("Configuration error:", (error as Error).message);
-        process.exit(1);
-      }
+      const config = validateConfigOrExit(loadConfig(), ["chainId"]);
 
       const broadcastPath = `broadcast/Deploy.s.sol/${config.chainId}/run-latest.json`;
 
@@ -135,7 +116,7 @@ export function registerVerifyCommands(program: Command): void {
 
       await verifyFromBroadcast(broadcastPath, {
         type: "sourcify",
-        chainId: config.chainId!,
+        chainId: config.chainId,
       });
     });
 }
