@@ -1,100 +1,112 @@
 // Environment configuration loader and validator
 
-import type { Config, DeploymentScript, VerifierType } from "../../types";
+import type { Config } from "../../types";
+import {
+  ARAGON_DAO_FACTORY_ADDRESS,
+  ARAGON_PLUGIN_REPO_FACTORY_ADDRESS,
+  ARAGON_PLUGIN_SETUP_PROCESSOR_ADDRESS,
+  CHAIN_IDS,
+  CHILIZ_GAS_PRICE,
+  CHILIZ_PRIORITY_GAS_PRICE,
+  DEFAULT_ARTIFACTS_FOLDER,
+  DEFAULT_CHAIN_ID,
+  DEFAULT_DEPLOYMENT_ADDRESS,
+  DEFAULT_DEPLOYMENT_PRIVATE_KEY,
+  DEFAULT_DEPLOYMENT_SCRIPT,
+  DEFAULT_LOGS_FOLDER,
+  DEFAULT_NETWORK_NAME,
+  DEFAULT_PLUGIN_ENS_SUBDOMAIN,
+  DEFAULT_RPC_URL,
+  DEFAULT_SOLC_VERSION,
+  DEFAULT_VERIFIER,
+  MIN_PRIVATE_KEY_LENGTH,
+  QUOTE_STRIP_REGEX,
+  SOLC_VERSION_REGEX,
+  VALID_DEPLOYMENT_SCRIPTS,
+  VALID_VERIFIERS,
+} from "../constants";
 
-const SUPPORTED_VERIFIERS: VerifierType[] = [
-  "etherscan",
-  "blockscout",
-  "sourcify",
-  "zksync",
-  "routescan-mainnet",
-  "routescan-testnet",
-];
-
-const SUPPORTED_DEPLOYMENT_SCRIPTS: DeploymentScript[] = [
-  "DeploySimple",
-  "DeployDaoWithPlugins",
-  "DeployViaFactory",
-];
-
-// Anvil default configuration for local development (mainnet fork)
-const ANVIL_DEFAULTS = {
-  rpcUrl: "http://127.0.0.1:8545",
-  chainId: 31_337,
-  networkName: "anvil",
-  // Anvil's first default test account private key (well-known, for local dev only)
-  deploymentPrivateKey:
-    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-  // Anvil's first default test account address (derived from above key)
-  deploymentAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  verifier: "sourcify" as VerifierType,
+// Helper to strip quotes from env vars
+const stripQuotes = (val: string | undefined): string => {
+  if (!val) return "";
+  return val.replace(QUOTE_STRIP_REGEX, "").trim();
 };
 
-// Aragon OSx mainnet contract addresses (for mainnet fork)
-const ARAGON_MAINNET = {
-  daoFactory: "0xA03C2182af8eC460D498108C92E8638a580b94d4",
-  pluginRepoFactory: "0x301868712b77744A3C0E5511609238399f0A2d4D",
-  pluginSetupProcessor: "0xE978942c691e43f65c1B7c7F8f1dc8cDF061B13f",
-};
+// Helper to get env var value
+const getEnv = (key: string): string | undefined => process.env[key];
 
-function stripQuotes(value: string | undefined): string {
-  if (!value) return "";
-  return value.replace(/^["']|["']$/g, "").trim();
-}
+// Helper to parse string with default
+const parseString = (val: string | undefined, defaultValue: string): string =>
+  val ? stripQuotes(val) : defaultValue;
+
+// Helper to parse number with default
+const parseNumber = (val: string | undefined, defaultValue: number): number =>
+  val ? Number.parseInt(stripQuotes(val), 10) : defaultValue;
 
 export function loadConfig(): Partial<Config> {
-  // Bun automatically loads .env files
-  const env = process.env;
+  return {
+    // Network
+    rpcUrl: parseString(getEnv("RPC_URL"), DEFAULT_RPC_URL),
+    chainId: parseNumber(getEnv("CHAIN_ID"), DEFAULT_CHAIN_ID),
+    networkName: parseString(getEnv("NETWORK_NAME"), DEFAULT_NETWORK_NAME),
 
-  const config: Partial<Config> = {
-    // Network (with Anvil defaults for local development)
-    rpcUrl: stripQuotes(env.RPC_URL) || ANVIL_DEFAULTS.rpcUrl,
-    chainId: env.CHAIN_ID
-      ? Number.parseInt(stripQuotes(env.CHAIN_ID), 10)
-      : ANVIL_DEFAULTS.chainId,
-    networkName: stripQuotes(env.NETWORK_NAME) || ANVIL_DEFAULTS.networkName,
+    // Deployment
+    deploymentPrivateKey: parseString(
+      getEnv("DEPLOYMENT_PRIVATE_KEY"),
+      DEFAULT_DEPLOYMENT_PRIVATE_KEY
+    ),
+    deploymentScript: (parseString(
+      getEnv("DEPLOYMENT_SCRIPT"),
+      DEFAULT_DEPLOYMENT_SCRIPT
+    ) || DEFAULT_DEPLOYMENT_SCRIPT) as Config["deploymentScript"],
 
-    // Deployment (with Anvil defaults)
-    deploymentPrivateKey:
-      stripQuotes(env.DEPLOYMENT_PRIVATE_KEY) ||
-      ANVIL_DEFAULTS.deploymentPrivateKey,
-    deploymentScript: (stripQuotes(env.DEPLOYMENT_SCRIPT) ||
-      "DeploySimple") as DeploymentScript,
+    // Verification
+    verifier: (parseString(getEnv("VERIFIER"), DEFAULT_VERIFIER) ||
+      DEFAULT_VERIFIER) as Config["verifier"],
+    verifierApiKey: stripQuotes(getEnv("ETHERSCAN_API_KEY")) || undefined,
+    blockscoutHostName:
+      stripQuotes(getEnv("BLOCKSCOUT_HOST_NAME")) || undefined,
 
-    // Verification (with Anvil-friendly default)
-    verifier: (stripQuotes(env.VERIFIER) ||
-      ANVIL_DEFAULTS.verifier) as VerifierType,
-    verifierApiKey: stripQuotes(env.ETHERSCAN_API_KEY),
-    blockscoutHostName: stripQuotes(env.BLOCKSCOUT_HOST_NAME),
-
-    // Aragon OSx (defaults to mainnet for fork testing)
+    // Aragon OSx
     daoFactoryAddress:
-      stripQuotes(env.DAO_FACTORY_ADDRESS) || ARAGON_MAINNET.daoFactory,
+      parseString(getEnv("DAO_FACTORY_ADDRESS"), ARAGON_DAO_FACTORY_ADDRESS) ||
+      undefined,
     pluginRepoFactoryAddress:
-      stripQuotes(env.PLUGIN_REPO_FACTORY_ADDRESS) ||
-      ARAGON_MAINNET.pluginRepoFactory,
+      parseString(
+        getEnv("PLUGIN_REPO_FACTORY_ADDRESS"),
+        ARAGON_PLUGIN_REPO_FACTORY_ADDRESS
+      ) || undefined,
     pluginSetupProcessorAddress:
-      stripQuotes(env.PLUGIN_SETUP_PROCESSOR_ADDRESS) ||
-      ARAGON_MAINNET.pluginSetupProcessor,
+      parseString(
+        getEnv("PLUGIN_SETUP_PROCESSOR_ADDRESS"),
+        ARAGON_PLUGIN_SETUP_PROCESSOR_ADDRESS
+      ) || undefined,
 
-    // Plugin (defaults to deployer address for local dev)
-    pluginEnsSubdomain: stripQuotes(env.PLUGIN_ENS_SUBDOMAIN) || "my-plugin",
+    // Plugin
+    pluginEnsSubdomain:
+      parseString(
+        getEnv("PLUGIN_ENS_SUBDOMAIN"),
+        DEFAULT_PLUGIN_ENS_SUBDOMAIN
+      ) || undefined,
     pluginRepoMaintainerAddress:
-      stripQuotes(env.PLUGIN_REPO_MAINTAINER_ADDRESS) ||
-      ANVIL_DEFAULTS.deploymentAddress,
+      parseString(
+        getEnv("PLUGIN_REPO_MAINTAINER_ADDRESS"),
+        DEFAULT_DEPLOYMENT_ADDRESS
+      ) || undefined,
 
     // Refund
-    refundAddress: stripQuotes(env.REFUND_ADDRESS),
+    refundAddress: stripQuotes(getEnv("REFUND_ADDRESS")) || undefined,
 
-    // Paths (with defaults)
-    artifactsFolder: stripQuotes(env.ARTIFACTS_FOLDER) || "./artifacts",
-    logsFolder: stripQuotes(env.LOGS_FOLDER) || "./logs",
+    // Paths
+    artifactsFolder: parseString(
+      getEnv("ARTIFACTS_FOLDER"),
+      DEFAULT_ARTIFACTS_FOLDER
+    ),
+    logsFolder: parseString(getEnv("LOGS_FOLDER"), DEFAULT_LOGS_FOLDER),
   };
-
-  return config;
 }
 
-function validateRequiredFields<K extends keyof Config>(
+function checkRequiredFields<K extends keyof Config>(
   config: Partial<Config>,
   requiredFields: K[]
 ): string[] {
@@ -111,18 +123,18 @@ function validateRequiredFields<K extends keyof Config>(
 function validateFieldValues(config: Partial<Config>): string[] {
   const invalid: string[] = [];
 
-  if (config.verifier && !SUPPORTED_VERIFIERS.includes(config.verifier)) {
+  if (config.verifier && !VALID_VERIFIERS.includes(config.verifier)) {
     invalid.push(
-      `verifier must be one of: ${SUPPORTED_VERIFIERS.join(", ")} (got: ${config.verifier})`
+      `verifier must be one of: ${VALID_VERIFIERS.join(", ")} (got: ${config.verifier})`
     );
   }
 
   if (
     config.deploymentScript &&
-    !SUPPORTED_DEPLOYMENT_SCRIPTS.includes(config.deploymentScript)
+    !VALID_DEPLOYMENT_SCRIPTS.includes(config.deploymentScript)
   ) {
     invalid.push(
-      `deploymentScript must be one of: ${SUPPORTED_DEPLOYMENT_SCRIPTS.join(", ")} (got: ${config.deploymentScript})`
+      `deploymentScript must be one of: ${VALID_DEPLOYMENT_SCRIPTS.join(", ")} (got: ${config.deploymentScript})`
     );
   }
 
@@ -133,33 +145,28 @@ function validateFieldValues(config: Partial<Config>): string[] {
   return invalid;
 }
 
-function buildValidationError(missing: string[], invalid: string[]): Error {
-  const errorParts: string[] = [];
-  if (missing.length > 0) {
-    errorParts.push(`Missing required fields: ${missing.join(", ")}`);
-  }
-  if (invalid.length > 0) {
-    errorParts.push(`Invalid values: ${invalid.join("; ")}`);
-  }
-  return new Error(errorParts.join("\n"));
-}
-
 export function validateConfig<K extends keyof Config>(
   config: Partial<Config>,
   requiredFields: K[]
 ): asserts config is Partial<Config> & Required<Pick<Config, K>> {
-  const missing = validateRequiredFields(config, requiredFields);
+  const missing = checkRequiredFields(config, requiredFields);
   const invalid = validateFieldValues(config);
 
   if (missing.length > 0 || invalid.length > 0) {
-    throw buildValidationError(missing, invalid);
+    const errorParts: string[] = [];
+    if (missing.length > 0)
+      errorParts.push(`Missing required fields: ${missing.join(", ")}`);
+
+    errorParts.push(`Invalid values: ${invalid.join("; ")}`);
+
+    throw new Error(errorParts.join("\n"));
   }
 }
 
 export function getDeploymentAddress(privateKey: string): string | null {
   // We'll use cast to derive the address
   // This is a sync check - if private key is invalid, return null
-  if (!privateKey || privateKey.length < 64) {
+  if (!privateKey || privateKey.length < MIN_PRIVATE_KEY_LENGTH) {
     return null;
   }
   return null; // Will be computed via cast
@@ -173,17 +180,17 @@ export function getChainCustomParams(chainId: number): {
   const forgeBuildParams: string[] = [];
 
   switch (chainId) {
-    case 88_888:
+    case CHAIN_IDS.CHILIZ:
       // Chiliz chain - custom gas settings
       forgeScriptParams.push(
         "--priority-gas-price",
-        "1000000000",
+        CHILIZ_PRIORITY_GAS_PRICE,
         "--gas-price",
-        "5200000000000"
+        CHILIZ_GAS_PRICE
       );
       break;
-    case 300:
-    case 324:
+    case CHAIN_IDS.ZKSYNC_TESTNET:
+    case CHAIN_IDS.ZKSYNC_MAINNET:
       // zkSync Era (testnet: 300, mainnet: 324)
       forgeScriptParams.push("--slow");
       forgeBuildParams.push("--zksync");
@@ -196,12 +203,10 @@ export function getChainCustomParams(chainId: number): {
   return { forgeScriptParams, forgeBuildParams };
 }
 
-export function getSolcVersion(): string {
-  const { SOLC_VERSION_REGEX, DEFAULT_SOLC_VERSION } = require("../constants");
+export async function getSolcVersion(): Promise<string> {
   try {
-    const _foundryToml = Bun.file("foundry.toml");
-    // Quick sync read for config
-    const content = require("node:fs").readFileSync("foundry.toml", "utf-8");
+    const file = Bun.file("foundry.toml");
+    const content = await file.text();
     const match = content.match(SOLC_VERSION_REGEX);
     return match?.[1] || DEFAULT_SOLC_VERSION;
   } catch {

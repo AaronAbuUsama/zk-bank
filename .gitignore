@@ -2,7 +2,7 @@
 cache
 coverage
 out
-
+convex/_generated/*
 # Files
 *.env
 *.log
@@ -24,3 +24,4 @@ broadcast/*/31337/
 /dependencies
 
 node_modules
+.env.local
