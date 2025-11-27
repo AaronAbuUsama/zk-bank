@@ -100,21 +100,23 @@ The existing `Result<T, E>` pattern is good but needs named error classes for:
 ```typescript
 // cli/shared/errors/types.ts
 export class ZkBankError extends Error {
-  readonly code: string
-  readonly context?: Record<string, unknown>
+  readonly code: string;
+  readonly context?: Record<string, unknown>;
+
   constructor(message: string, code: string, context?: Record<string, unknown>) {
-    super(message)
-    this.name = this.constructor.name
-    this.code = code
-    this.context = context
+    super(message);
+    this.name = this.constructor.name;
+    this.code = code;
+    this.context = context;
   }
 }
 
 export class ValidationError extends ZkBankError {
-  readonly issues: ValidationIssue[]
+  readonly issues: ValidationIssue[];
+
   constructor(message: string, issues: ValidationIssue[]) {
-    super(message, 'VALIDATION_ERROR', { issues })
-    this.issues = issues
+    super(message, "VALIDATION_ERROR", { issues });
+    this.issues = issues;
   }
 }
 ```
@@ -123,18 +125,24 @@ export class ValidationError extends ZkBankError {
 
 ```typescript
 // cli/state/atoms/theme.ts
-import { atomWithStorage } from 'jotai/utils'
-import type { ThemeName, LayoutMode } from '@/ui/themes/types'
+import { atomWithStorage } from "jotai/utils";
+import type { ThemeName, LayoutMode } from "@/ui/themes/types";
 
 // Custom storage adapter for Bun.file
 const bunStorage = {
-  getItem: async (key: string) => { /* read from ~/.config/zk-bank/ */ },
-  setItem: async (key: string, value: string) => { /* write to ~/.config/zk-bank/ */ },
-  removeItem: async (key: string) => { /* delete from ~/.config/zk-bank/ */ },
-}
+  getItem: async (key: string) => {
+    /* read from ~/.config/zk-bank/ */
+  },
+  setItem: async (key: string, value: string) => {
+    /* write to ~/.config/zk-bank/ */
+  },
+  removeItem: async (key: string) => {
+    /* delete from ~/.config/zk-bank/ */
+  },
+};
 
-export const themeAtom = atomWithStorage<ThemeName>('theme', 'terminal-classic', bunStorage)
-export const layoutModeAtom = atomWithStorage<LayoutMode>('layoutMode', 'chat', bunStorage)
+export const themeAtom = atomWithStorage<ThemeName>("theme", "terminal-classic", bunStorage);
+export const layoutModeAtom = atomWithStorage<LayoutMode>("layoutMode", "chat", bunStorage);
 ```
 
 **Directory Structure:**

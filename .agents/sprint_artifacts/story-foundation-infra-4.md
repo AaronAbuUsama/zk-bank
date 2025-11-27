@@ -68,72 +68,74 @@ This story implements the theme system per UX Design Specification. All 5 themes
 
 ```typescript
 // cli/ui/themes/types.ts
-export interface Theme {
-  name: string
-  bg: string           // Main background
-  bgAlt: string        // Banner, footer, input areas
-  text: string         // Primary text
-  textBright: string   // Emphasized text
-  textDim: string      // Muted, timestamps
-  primary: string      // Primary actions, branding
-  accent: string       // Secondary accent, info
-  success: string      // Price up, profits
-  error: string        // Price down, liquidations
-  warning: string      // Caution, attention
-}
+export type Theme = {
+  name: string;
+  bg: string;           // Main background
+  bgAlt: string;        // Banner, footer, input areas
+  text: string;         // Primary text
+  textBright: string;   // Emphasized text
+  textDim: string;      // Muted, timestamps
+  primary: string;      // Primary actions, branding
+  accent: string;       // Secondary accent, info
+  success: string;      // Price up, profits
+  error: string;        // Price down, liquidations
+  warning: string;      // Caution, attention
+};
 
 export type ThemeName =
-  | 'terminal-classic'
-  | 'cyberpunk-neon'
-  | 'nord-frost'
-  | 'dracula'
-  | 'bloomberg'
+  | "terminal-classic"
+  | "cyberpunk-neon"
+  | "nord-frost"
+  | "dracula"
+  | "bloomberg";
 
-export type LayoutMode = 'chat' | 'dense'
+export type LayoutMode = "chat" | "dense";
 ```
 
 **Theme Definitions:**
 
 ```typescript
 // cli/ui/themes/index.ts
+import type { Theme, ThemeName } from "./types";
+
 export const themes: Record<ThemeName, Theme> = {
-  'terminal-classic': {
-    name: 'Terminal Classic',
-    bg: '#0a0a0a',
-    bgAlt: '#0f0f0f',
-    text: '#b0b0b0',
-    textBright: '#ffffff',
-    textDim: '#666666',
-    primary: '#33ff33',
-    accent: '#00ffff',
-    success: '#33ff33',
-    error: '#ff3333',
-    warning: '#ffff33',
+  "terminal-classic": {
+    name: "Terminal Classic",
+    bg: "#0a0a0a",
+    bgAlt: "#0f0f0f",
+    text: "#b0b0b0",
+    textBright: "#ffffff",
+    textDim: "#666666",
+    primary: "#33ff33",
+    accent: "#00ffff",
+    success: "#33ff33",
+    error: "#ff3333",
+    warning: "#ffff33",
   },
-  'nord-frost': {
-    name: 'Nord Frost',
-    bg: '#2e3440',
-    bgAlt: '#3b4252',
-    text: '#d8dee9',
-    textBright: '#eceff4',
-    textDim: '#4c566a',
-    primary: '#88c0d0',
-    accent: '#b48ead',
-    success: '#a3be8c',
-    error: '#bf616a',
-    warning: '#ebcb8b',
+  "nord-frost": {
+    name: "Nord Frost",
+    bg: "#2e3440",
+    bgAlt: "#3b4252",
+    text: "#d8dee9",
+    textBright: "#eceff4",
+    textDim: "#4c566a",
+    primary: "#88c0d0",
+    accent: "#b48ead",
+    success: "#a3be8c",
+    error: "#bf616a",
+    warning: "#ebcb8b",
   },
   // ... other themes
-}
+};
 ```
 
 **Usage Pattern:**
 
 ```typescript
 // In any component
-const { theme } = useTheme()
-<Text color={theme.primary}>Username</Text>  // Good
-<Text color="#33ff33">Username</Text>         // Bad - never do this
+const { theme } = useTheme();
+<Text color={theme.primary}>Username</Text>;  // Good
+<Text color="#33ff33">Username</Text>;        // Bad - never do this
 ```
 
 ### Project Structure Notes

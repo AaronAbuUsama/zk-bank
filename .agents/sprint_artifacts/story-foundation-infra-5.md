@@ -103,19 +103,17 @@ This story creates the complete layout architecture per the Architecture documen
 
 ```typescript
 // cli/ui/components/layout/AppShell.tsx
-import { Box } from 'ink'
-import { useAtom } from 'jotai'
-import { themeAtom } from '@/state'
-import { useTheme } from '@/hooks'
-import { Banner } from './Banner'
-import { Footer } from './Footer'
+import { Box } from "ink";
+import { useTheme } from "@/hooks";
+import { Banner } from "./Banner";
+import { Footer } from "./Footer";
 
-interface Props {
-  children: React.ReactNode
-}
+type Props = {
+  children: React.ReactNode;
+};
 
 export function AppShell({ children }: Props) {
-  const { theme } = useTheme()
+  const { theme } = useTheme();
 
   return (
     <Box
@@ -130,7 +128,7 @@ export function AppShell({ children }: Props) {
       </Box>
       <Footer />
     </Box>
-  )
+  );
 }
 ```
 
@@ -138,23 +136,23 @@ export function AppShell({ children }: Props) {
 
 ```typescript
 // cli/app.tsx
-import { useAtom } from 'jotai'
-import { activePageAtom } from '@/state'
-import { AppShell } from '@/ui/components/layout'
-import { Dashboard, Trollbox, Chain } from '@/ui/pages'
-import { useKeyboard } from '@/hooks'
+import { useAtom } from "jotai";
+import { activePageAtom } from "@/state";
+import { AppShell } from "@/ui/components/layout";
+import { Dashboard, Trollbox, Chain } from "@/ui/pages";
+import { useKeyboard } from "@/hooks";
 
 export function App() {
-  const [activePage] = useAtom(activePageAtom)
-  useKeyboard() // Enables all keyboard shortcuts
+  const [activePage] = useAtom(activePageAtom);
+  useKeyboard(); // Enables all keyboard shortcuts
 
   return (
     <AppShell>
-      {activePage === 'dashboard' && <Dashboard />}
-      {activePage === 'trollbox' && <Trollbox />}
-      {activePage === 'chain' && <Chain />}
+      {activePage === "dashboard" && <Dashboard />}
+      {activePage === "trollbox" && <Trollbox />}
+      {activePage === "chain" && <Chain />}
     </AppShell>
-  )
+  );
 }
 ```
 

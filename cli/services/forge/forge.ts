@@ -5,7 +5,7 @@ import type {
   ForgeScriptOptions,
   ForgeTestOptions,
   VerifyOptions,
-} from "../types";
+} from "../../types";
 
 async function runCommand(
   args: string[],

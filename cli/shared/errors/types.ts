@@ -47,6 +47,13 @@ export class WalletError extends ZkBankError {
   }
 }
 
+/** Cast command execution errors */
+export class CastError extends ZkBankError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, "CAST_ERROR", context);
+  }
+}
+
 /** Validation errors (can contain multiple issues) */
 export class ValidationError extends ZkBankError {
   readonly issues: ValidationIssue[];

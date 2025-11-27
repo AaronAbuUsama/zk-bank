@@ -10,19 +10,10 @@
   "linter": {
     "rules": {
       "style": {
-        "useBlockStatements": "off",
-        "useFilenamingConvention": "off",
-        "noNonNullAssertion": "warn"
+        "useBlockStatements": "off"
       },
       "nursery": {
         "noIncrementDecrement": "off"
-      },
-      "suspicious": {
-        "useAwait": "warn",
-        "noArrayIndexKey": "off"
-      },
-      "complexity": {
-        "noExcessiveCognitiveComplexity": "warn"
       }
     }
   }

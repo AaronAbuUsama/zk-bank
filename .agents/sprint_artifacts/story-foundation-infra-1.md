@@ -72,46 +72,46 @@ This story implements a revised ADR-001 (Ink-First, not Ink-Only). Like Claude C
 **New cli/index.ts:**
 ```typescript
 #!/usr/bin/env bun
-import { Command } from 'commander'
-import { render } from 'ink'
-import React from 'react'
+import { Command } from "commander";
+import { render } from "ink";
+import React from "react";
 
-const program = new Command()
+const program = new Command();
 
 program
-  .name('zk-bank')
-  .description('Social trading CLI for DeFi')
-  .version('1.0.0')
+  .name("zk-bank")
+  .description("Social trading CLI for DeFi")
+  .version("1.0.0");
 
 // Config command (non-interactive)
 program
-  .command('config')
-  .description('Manage configuration')
-  .argument('[key]', 'Config key to get/set')
-  .argument('[value]', 'Value to set')
+  .command("config")
+  .description("Manage configuration")
+  .argument("[key]", "Config key to get/set")
+  .argument("[value]", "Value to set")
   .action(async (key, value) => {
-    const { handleConfig } = await import('./commands/config')
-    await handleConfig(key, value)
-  })
+    const { handleConfig } = await import("./commands/config");
+    await handleConfig(key, value);
+  });
 
 // Chain command (non-interactive)
 program
-  .command('chain')
-  .description('Chain status and control')
-  .argument('[action]', 'status|mine|warp|reset')
-  .argument('[args...]', 'Action arguments')
+  .command("chain")
+  .description("Chain status and control")
+  .argument("[action]", "status|mine|warp|reset")
+  .argument("[args...]", "Action arguments")
   .action(async (action, args) => {
-    const { handleChain } = await import('./commands/chain')
-    await handleChain(action, args)
-  })
+    const { handleChain } = await import("./commands/chain");
+    await handleChain(action, args);
+  });
 
 // Default: Launch interactive Ink app
 program.action(async () => {
-  const { App } = await import('./app')
-  render(<App />)
-})
+  const { App } = await import("./app");
+  render(<App />);
+});
 
-program.parse()
+program.parse();
 ```
 
 **Supported Commands:**

@@ -1,7 +1,8 @@
 // Cast command wrapper
 
+import { CastError, type Result, tryCatchSync } from "../../shared/errors";
+import type { CastSendOptions } from "../../types";
 import { TX_HASH_REGEX } from "../constants";
-import type { CastSendOptions } from "../types";
 
 async function runCommand(
   args: string[]
@@ -44,7 +45,7 @@ export async function walletAddress(
 export async function balance(
   address: string,
   rpcUrl: string
-): Promise<bigint | null> {
+): Promise<Result<bigint, CastError>> {
   const result = await runCommand([
     "cast",
     "balance",
@@ -54,28 +55,62 @@ export async function balance(
   ]);
 
   if (!result.success) {
-    return null;
+    return {
+      data: null,
+      error: new CastError("Failed to get balance", {
+        address,
+        rpcUrl,
+        stderr: result.stderr,
+        code: result.code,
+      }),
+    };
   }
 
-  try {
-    return BigInt(result.stdout);
-  } catch {
-    return null;
+  const bigIntResult = tryCatchSync(() => BigInt(result.stdout));
+  if (bigIntResult.error) {
+    return {
+      data: null,
+      error: new CastError("Failed to parse balance as BigInt", {
+        address,
+        rpcUrl,
+        stdout: result.stdout,
+        parseError: bigIntResult.error.message,
+      }),
+    };
   }
+
+  return { data: bigIntResult.data, error: null };
 }
 
-export async function gasPrice(rpcUrl: string): Promise<bigint | null> {
+export async function gasPrice(
+  rpcUrl: string
+): Promise<Result<bigint, CastError>> {
   const result = await runCommand(["cast", "gas-price", "--rpc-url", rpcUrl]);
 
   if (!result.success) {
-    return null;
+    return {
+      data: null,
+      error: new CastError("Failed to get gas price", {
+        rpcUrl,
+        stderr: result.stderr,
+        code: result.code,
+      }),
+    };
   }
 
-  try {
-    return BigInt(result.stdout);
-  } catch {
-    return null;
+  const bigIntResult = tryCatchSync(() => BigInt(result.stdout));
+  if (bigIntResult.error) {
+    return {
+      data: null,
+      error: new CastError("Failed to parse gas price as BigInt", {
+        rpcUrl,
+        stdout: result.stdout,
+        parseError: bigIntResult.error.message,
+      }),
+    };
   }
+
+  return { data: bigIntResult.data, error: null };
 }
 
 export async function toUnit(

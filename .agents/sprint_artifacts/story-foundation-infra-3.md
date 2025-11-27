@@ -64,8 +64,8 @@ This story implements ADR-005 (Convex for Real-Time). Convex provides real-time 
 
 ```typescript
 // convex/schema.ts
-import { defineSchema, defineTable } from 'convex/server'
-import { v } from 'convex/values'
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 
 export default defineSchema({
   users: defineTable({
@@ -73,19 +73,19 @@ export default defineSchema({
     username: v.string(),
     bio: v.optional(v.string()),
     created_at: v.number(),
-  }).index('by_wallet', ['wallet_address']),
+  }).index("by_wallet", ["wallet_address"]),
 
   messages: defineTable({
-    user_id: v.optional(v.id('users')),
-    agent_id: v.optional(v.id('agents')),
+    user_id: v.optional(v.id("users")),
+    agent_id: v.optional(v.id("agents")),
     content: v.string(),
     message_type: v.union(
-      v.literal('chat'),
-      v.literal('trade'),
-      v.literal('liquidation')
+      v.literal("chat"),
+      v.literal("trade"),
+      v.literal("liquidation")
     ),
     created_at: v.number(),
-  }).index('by_created', ['created_at']),
+  }).index("by_created", ["created_at"]),
 
   agents: defineTable({
     name: v.string(),
@@ -101,37 +101,37 @@ export default defineSchema({
     usd_value: v.number(),
     tx_hash: v.string(),
     created_at: v.number(),
-  }).index('by_created', ['created_at']),
+  }).index("by_created", ["created_at"]),
 
   prices: defineTable({
     symbol: v.string(),
     price_usd: v.number(),
     change_24h: v.number(),
     updated_at: v.number(),
-  }).index('by_symbol', ['symbol']),
-})
+  }).index("by_symbol", ["symbol"]),
+});
 ```
 
 **Client Setup:**
 
 ```typescript
 // cli/services/convex/client.ts
-import { ConvexClient } from 'convex/browser'
-import { ConfigError } from '@/shared/errors'
+import { ConvexClient } from "convex/browser";
+import { ConfigError } from "@/shared/errors";
 
-let client: ConvexClient | null = null
+let client: ConvexClient | null = null;
 
 export function getConvexClient(): ConvexClient {
   if (!client) {
-    const url = process.env.CONVEX_URL
+    const url = process.env.CONVEX_URL;
     if (!url) {
-      throw new ConfigError('CONVEX_URL not set. Run: bunx convex dev', {
-        envVar: 'CONVEX_URL'
-      })
+      throw new ConfigError("CONVEX_URL not set. Run: bunx convex dev", {
+        envVar: "CONVEX_URL",
+      });
     }
-    client = new ConvexClient(url)
+    client = new ConvexClient(url);
   }
-  return client
+  return client;
 }
 ```
 

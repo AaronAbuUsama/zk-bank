@@ -331,22 +331,24 @@ export default defineSchema({
 
 ```typescript
 // cli/ui/themes/types.ts
-export interface Theme {
-  name: string
-  bg: string
-  bgAlt: string
-  text: string
-  textBright: string
-  textDim: string
-  primary: string
-  accent: string
-  success: string
-  error: string
-  warning: string
-}
 
-export type ThemeName = 'terminal-classic' | 'cyberpunk-neon' | 'nord-frost' | 'dracula' | 'bloomberg'
-export type LayoutMode = 'chat' | 'dense'
+
+okexport type Theme = {
+  name: string;
+  bg: string;
+  bgAlt: string;
+  text: string;
+  textBright: string;
+  textDim: string;
+  primary: string;
+  accent: string;
+  success: string;
+  error: string;
+  warning: string;
+};
+
+export type ThemeName = "terminal-classic" | "cyberpunk-neon" | "nord-frost" | "dracula" | "bloomberg";
+export type LayoutMode = "chat" | "dense";
 ```
 
 **5. AppShell Architecture**
@@ -456,19 +458,95 @@ export function Component({ ... }: Props) { }
 | `.env` | Add `CONVEX_URL` (auto-set by `bunx convex dev`) |
 | `~/.config/zk-bank/preferences.json` | Created by atomWithStorage |
 
-### Existing Conventions (Brownfield)
+### Coding Standards (MUST CONFORM)
 
-**Code Style (MUST CONFORM):**
-- No semicolons (existing codebase style)
-- Tabs for indentation
-- Double quotes for strings
-- Named exports only
-- React 19 patterns (no legacy lifecycle)
+**Linting:** Biome via `ultracite/core` + `ultracite/react`
+
+**Critical Rules:**
+| Rule | Setting | Implication |
+|------|---------|-------------|
+| `noExcessiveCognitiveComplexity` | error (15) | Max complexity 15 per function |
+| `noForEach` | error | Use `for...of` not `.forEach()` |
+| `useConsistentTypeDefinitions` | type | Use `type` not `interface` |
+| `noNonNullAssertion` | error | No `!` assertions |
+| `noExplicitAny` | error | No `any` types |
+| `noNestedTernary` | error | No nested ternaries |
+| `noBarrelFile` | error | Barrel exports need `biome-ignore` |
+| `useFilenamingConvention` | kebab-case | Files must be kebab-case |
+| `semicolons` | always | Semicolons required |
+
+**Constants Pattern (UPPER_SNAKE_CASE):**
+```typescript
+// cli/shared/constants.ts
+export const TX_HASH_REGEX = /0x[a-fA-F0-9]{64}/;
+export const DEFAULT_SOLC_VERSION = "0.8.28";
+export const MAX_LOG_LINES = 20;
+```
+
+**Error Handling (Result<T, E> pattern):**
+```typescript
+// No try/catch sprawl - use tryCatch wrapper
+const result = await tryCatch<Response, NetworkError>(fetch(url));
+if (result.error) {
+  console.error(`Failed: ${result.error.message}`);
+  process.exit(1);
+}
+// result.data is typed
+```
+
+**Named Error Classes:**
+- `ZkBankError` - Base class with `code` and `context`
+- `ConfigError` - Configuration/environment errors
+- `NetworkError` - RPC/HTTP failures
+- `ValidationError` - Field validation with `issues[]`
+- `AggregateZkBankError` - Multiple errors container
+
+**Export Pattern:**
+```typescript
+// Named exports only - no default exports
+export function loadConfig(): Partial<Config> { }
+export type Config = { ... };
+
+// Barrel exports require biome-ignore
+// biome-ignore lint: Intentional barrel export
+export * from "./types";
+```
 
 **Import Organization:**
-1. External packages (ink, react, jotai)
-2. Internal absolute imports (@/...)
-3. Relative imports (./)
+```typescript
+// 1. Type imports first
+import type { Command } from "commander";
+import type { Result } from "../shared/errors";
+
+// 2. External packages
+import { Command } from "commander";
+
+// 3. Internal imports (relative paths)
+import { loadConfig } from "../lib/config";
+import { NetworkError, tryCatch } from "../shared/errors";
+```
+
+**File Organization:**
+```
+cli/
+├── commands/     # registerXxxCommands(program) functions
+├── services/     # External tool wrappers (forge/, cast/, convex/)
+├── shared/       # Cross-cutting (errors/, constants.ts)
+├── lib/          # Internal utilities (config.ts)
+├── state/        # Jotai atoms
+├── hooks/        # React hooks
+├── types/        # TypeScript types
+└── ui/           # Ink components
+    ├── components/
+    ├── pages/
+    └── themes/
+```
+
+**Function Patterns:**
+- Keep complexity under 15 (break into smaller functions)
+- Use `Promise.all()` for parallel async operations
+- Early returns for error cases
+- `process.exit(1)` after error logging in CLI commands
 
 ### Test Framework & Standards
 
@@ -556,29 +634,29 @@ Global handler for tab switching and shortcuts. **Important:** Tab navigation us
 
 ```typescript
 // cli/hooks/useKeyboard.ts
-import { useInput } from 'ink'
-import { useSetAtom } from 'jotai'
-import { activePageAtom } from '@/state'
+import { useInput } from "ink";
+import { useSetAtom } from "jotai";
+import { activePageAtom } from "@/state";
 
 export function useKeyboard() {
-  const setActivePage = useSetAtom(activePageAtom)
+  const setActivePage = useSetAtom(activePageAtom);
 
   useInput((input, key) => {
     // Tab navigation (Ctrl+number to avoid text input conflicts)
-    if (key.ctrl && input === '1') setActivePage('dashboard')
-    if (key.ctrl && input === '2') setActivePage('trollbox')
-    if (key.ctrl && input === '3') setActivePage('chain')
+    if (key.ctrl && input === "1") setActivePage("dashboard");
+    if (key.ctrl && input === "2") setActivePage("trollbox");
+    if (key.ctrl && input === "3") setActivePage("chain");
 
     // Theme cycling
-    if (key.ctrl && input === 't') {
+    if (key.ctrl && input === "t") {
       // Cycle theme
     }
 
     // Layout toggle
-    if (key.ctrl && input === 'd') {
+    if (key.ctrl && input === "d") {
       // Toggle layout mode
     }
-  })
+  });
 }
 ```
 
@@ -591,117 +669,119 @@ Expand the existing `Result<T, E>` pattern with named error classes for consiste
 
 /** Base error class for all zk-bank errors */
 export class ZkBankError extends Error {
-  readonly code: string
-  readonly context?: Record<string, unknown>
+  readonly code: string;
+  readonly context?: Record<string, unknown>;
 
   constructor(message: string, code: string, context?: Record<string, unknown>) {
-    super(message)
-    this.name = this.constructor.name
-    this.code = code
-    this.context = context
+    super(message);
+    this.name = this.constructor.name;
+    this.code = code;
+    this.context = context;
   }
 }
 
 /** Configuration/environment errors */
 export class ConfigError extends ZkBankError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 'CONFIG_ERROR', context)
+    super(message, "CONFIG_ERROR", context);
   }
 }
 
 /** Network/RPC errors */
 export class NetworkError extends ZkBankError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 'NETWORK_ERROR', context)
+    super(message, "NETWORK_ERROR", context);
   }
 }
 
 /** Convex backend errors */
 export class ConvexError extends ZkBankError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 'CONVEX_ERROR', context)
+    super(message, "CONVEX_ERROR", context);
   }
 }
 
 /** Wallet/signing errors */
 export class WalletError extends ZkBankError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 'WALLET_ERROR', context)
+    super(message, "WALLET_ERROR", context);
   }
 }
 
 /** Validation errors (can contain multiple issues) */
 export class ValidationError extends ZkBankError {
-  readonly issues: ValidationIssue[]
+  readonly issues: ValidationIssue[];
 
   constructor(message: string, issues: ValidationIssue[]) {
-    super(message, 'VALIDATION_ERROR', { issues })
-    this.issues = issues
+    super(message, "VALIDATION_ERROR", { issues });
+    this.issues = issues;
   }
 }
 
-export interface ValidationIssue {
-  field: string
-  message: string
-  code?: string
-}
+export type ValidationIssue = {
+  field: string;
+  message: string;
+  code?: string;
+};
 
 /** Multi-error container for operations that can fail in multiple ways */
-export class AggregateError extends ZkBankError {
-  readonly errors: ZkBankError[]
+export class AggregateZkBankError extends ZkBankError {
+  readonly errors: ZkBankError[];
 
   constructor(message: string, errors: ZkBankError[]) {
-    super(message, 'AGGREGATE_ERROR', { errorCount: errors.length })
-    this.errors = errors
+    super(message, "AGGREGATE_ERROR", { errorCount: errors.length });
+    this.errors = errors;
   }
 }
 ```
 
 ```typescript
 // cli/shared/errors/index.ts - updated exports
-export * from './types'
-export { tryCatch, tryCatchSync, type Result } from '../errors'
+// biome-ignore lint: Intentional barrel export
+export * from "./types";
+export { tryCatch, tryCatchSync, type Result } from "../errors";
 
 // Helper for creating validation errors
 export function validationError(issues: ValidationIssue[]): ValidationError {
-  const message = issues.map(i => `${i.field}: ${i.message}`).join('; ')
-  return new ValidationError(message, issues)
+  const message = issues.map((i) => `${i.field}: ${i.message}`).join("; ");
+  return new ValidationError(message, issues);
 }
 
 // Helper for aggregating multiple errors
-export function aggregateErrors(errors: ZkBankError[]): AggregateError {
-  return new AggregateError(`${errors.length} errors occurred`, errors)
+export function aggregateErrors(errors: ZkBankError[]): AggregateZkBankError {
+  return new AggregateZkBankError(`${errors.length} errors occurred`, errors);
 }
 
 // Type guard for checking error types
 export function isZkBankError(error: unknown): error is ZkBankError {
-  return error instanceof ZkBankError
+  return error instanceof ZkBankError;
 }
 ```
 
 **Usage Pattern:**
 ```typescript
-import { tryCatch, ConfigError, ValidationError, validationError } from '@/shared/errors'
+import type { Result } from "@/shared/errors";
+import { tryCatch, ConfigError, ValidationError, validationError } from "@/shared/errors";
 
 // Single typed error
 async function loadConfig(): Promise<Result<Config, ConfigError>> {
-  const file = Bun.file(configPath)
-  if (!await file.exists()) {
-    return { data: null, error: new ConfigError('Config file not found', { path: configPath }) }
+  const file = Bun.file(configPath);
+  if (!(await file.exists())) {
+    return { data: null, error: new ConfigError("Config file not found", { path: configPath }) };
   }
-  return tryCatch(file.json())
+  return tryCatch(file.json());
 }
 
 // Multiple validation issues
 function validateUser(input: unknown): Result<User, ValidationError> {
-  const issues: ValidationIssue[] = []
-  if (!input.username) issues.push({ field: 'username', message: 'Required' })
-  if (!input.wallet) issues.push({ field: 'wallet', message: 'Required' })
+  const issues: ValidationIssue[] = [];
+  if (!input.username) issues.push({ field: "username", message: "Required" });
+  if (!input.wallet) issues.push({ field: "wallet", message: "Required" });
 
   if (issues.length > 0) {
-    return { data: null, error: validationError(issues) }
+    return { data: null, error: validationError(issues) };
   }
-  return { data: input as User, error: null }
+  return { data: input as User, error: null };
 }
 ```
 
@@ -709,22 +789,22 @@ function validateUser(input: unknown): Result<User, ValidationError> {
 
 ```typescript
 // cli/services/convex/client.ts
-import { ConvexClient } from 'convex/browser'
-import { ConfigError } from '@/shared/errors'
+import { ConvexClient } from "convex/browser";
+import { ConfigError } from "@/shared/errors";
 
-let client: ConvexClient | null = null
+let client: ConvexClient | null = null;
 
 export function getConvexClient(): ConvexClient {
   if (!client) {
-    const url = process.env.CONVEX_URL
+    const url = process.env.CONVEX_URL;
     if (!url) {
-      throw new ConfigError('CONVEX_URL not set. Run: bunx convex dev', {
-        envVar: 'CONVEX_URL'
-      })
+      throw new ConfigError("CONVEX_URL not set. Run: bunx convex dev", {
+        envVar: "CONVEX_URL",
+      });
     }
-    client = new ConvexClient(url)
+    client = new ConvexClient(url);
   }
-  return client
+  return client;
 }
 ```
 

@@ -1,8 +1,8 @@
 // Multi-verifier abstraction
 
 import { glob } from "glob";
-import type { BroadcastJson, VerifierType, VerifyOptions } from "../types";
-import { verify as forgeVerify } from "./forge";
+import type { BroadcastJson, VerifierType, VerifyOptions } from "../../types";
+import { verify as forgeVerify } from "../forge/forge";
 
 export type VerifierConfig = {
   type: VerifierType;
@@ -107,7 +107,7 @@ async function locateSourceFile(contractName: string): Promise<string | null> {
   for (const pattern of patterns) {
     const files = await glob(pattern);
     if (files.length > 0) {
-      return files[0];
+      return files[0] || null;
     }
   }
 
