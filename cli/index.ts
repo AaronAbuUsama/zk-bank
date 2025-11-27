@@ -3,13 +3,13 @@
 
 import { Command } from "commander";
 import { registerBuildCommands } from "./commands/build";
+import { registerChainCommands } from "./commands/chain";
+import { registerDeployCommands } from "./commands/deploy";
+import { registerPromptCommands } from "./commands/prompts";
 import { registerTestCommands } from "./commands/test";
 import { registerTestTreeCommands } from "./commands/test-tree";
-import { registerDeployCommands } from "./commands/deploy";
-import { registerVerifyCommands } from "./commands/verify";
-import { registerPromptCommands } from "./commands/prompts";
 import { registerUtilCommands } from "./commands/utils";
-import { registerChainCommands } from "./commands/chain";
+import { registerVerifyCommands } from "./commands/verify";
 
 // Check if any arguments were passed (beyond node/bun and script path)
 const hasArgs = process.argv.length > 2;
@@ -20,7 +20,9 @@ if (hasArgs) {
 
   program
     .name("zk-bank")
-    .description("ZK Bank CLI - Build, test, and deploy Foundry smart contracts")
+    .description(
+      "ZK Bank CLI - Build, test, and deploy Foundry smart contracts"
+    )
     .version("1.0.0");
 
   // Register all command groups

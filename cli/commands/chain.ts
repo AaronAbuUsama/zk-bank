@@ -1,11 +1,15 @@
 // Chain control commands for Anvil: mine, warp, mint, impersonate
 
-import { Command } from "commander";
+import type { Command } from "commander";
 import { loadConfig } from "../lib/config";
 
-async function rpcCall(method: string, params: unknown[] = []): Promise<unknown> {
+async function rpcCall(
+  method: string,
+  params: unknown[] = []
+): Promise<unknown> {
   const config = loadConfig();
-  const response = await fetch(config.rpcUrl!, {
+  const rpcUrl = config.rpcUrl ?? "http://127.0.0.1:8545";
+  const response = await fetch(rpcUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -25,7 +29,7 @@ async function rpcCall(method: string, params: unknown[] = []): Promise<unknown>
 
 function parseEther(value: string): string {
   // Convert ETH to wei (hex)
-  const eth = parseFloat(value);
+  const eth = Number.parseFloat(value);
   const wei = BigInt(Math.floor(eth * 1e18));
   return "0x" + wei.toString(16);
 }
@@ -41,8 +45,8 @@ export function registerChainCommands(program: Command): void {
     .option("-i, --interval <seconds>", "Time interval between blocks", "1")
     .action(async (blocks = "1", options) => {
       const config = loadConfig();
-      const numBlocks = parseInt(blocks, 10);
-      const interval = parseInt(options.interval, 10);
+      const numBlocks = Number.parseInt(blocks, 10);
+      const interval = Number.parseInt(options.interval, 10);
 
       console.log(`Mining ${numBlocks} block(s) with ${interval}s interval...`);
 
@@ -54,7 +58,7 @@ export function registerChainCommands(program: Command): void {
 
       // Get new block number
       const blockNum = await rpcCall("eth_blockNumber");
-      console.log(`Current block: ${parseInt(blockNum as string, 16)}`);
+      console.log(`Current block: ${Number.parseInt(blockNum as string, 16)}`);
     });
 
   chain
@@ -65,11 +69,15 @@ export function registerChainCommands(program: Command): void {
 
       if (timestamp.startsWith("+")) {
         // Relative: +3600 means 1 hour from now
-        const currentBlock = await rpcCall("eth_getBlockByNumber", ["latest", false]) as { timestamp: string };
-        const currentTimestamp = parseInt(currentBlock.timestamp, 16);
-        targetTimestamp = currentTimestamp + parseInt(timestamp.slice(1), 10);
+        const currentBlock = (await rpcCall("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ])) as { timestamp: string };
+        const currentTimestamp = Number.parseInt(currentBlock.timestamp, 16);
+        targetTimestamp =
+          currentTimestamp + Number.parseInt(timestamp.slice(1), 10);
       } else {
-        targetTimestamp = parseInt(timestamp, 10);
+        targetTimestamp = Number.parseInt(timestamp, 10);
       }
 
       console.log(`Warping to timestamp ${targetTimestamp}...`);
@@ -80,8 +88,11 @@ export function registerChainCommands(program: Command): void {
       // Mine a block to apply the timestamp
       await rpcCall("anvil_mine", ["0x1", "0x0"]);
 
-      const block = await rpcCall("eth_getBlockByNumber", ["latest", false]) as { timestamp: string };
-      console.log(`Block timestamp: ${parseInt(block.timestamp, 16)}`);
+      const block = (await rpcCall("eth_getBlockByNumber", [
+        "latest",
+        false,
+      ])) as { timestamp: string };
+      console.log(`Block timestamp: ${Number.parseInt(block.timestamp, 16)}`);
     });
 
   chain
@@ -94,7 +105,10 @@ export function registerChainCommands(program: Command): void {
       await rpcCall("anvil_setBalance", [address, weiHex]);
 
       // Verify balance
-      const balance = await rpcCall("eth_getBalance", [address, "latest"]) as string;
+      const balance = (await rpcCall("eth_getBalance", [
+        address,
+        "latest",
+      ])) as string;
       const ethBalance = Number(BigInt(balance)) / 1e18;
       console.log(`New balance: ${ethBalance.toLocaleString()} ETH`);
     });
@@ -148,12 +162,13 @@ export function registerChainCommands(program: Command): void {
       const config = loadConfig();
       console.log("Resetting chain to fork state...");
 
-      const params: { forking?: { jsonRpcUrl: string; blockNumber?: number } } = {};
+      const params: { forking?: { jsonRpcUrl: string; blockNumber?: number } } =
+        {};
 
       if (config.rpcUrl && config.rpcUrl !== "http://127.0.0.1:8545") {
         params.forking = { jsonRpcUrl: config.rpcUrl };
         if (options.block) {
-          params.forking.blockNumber = parseInt(options.block, 10);
+          params.forking.blockNumber = Number.parseInt(options.block, 10);
         }
       }
 
@@ -175,7 +190,7 @@ export function registerChainCommands(program: Command): void {
     .command("block-interval <seconds>")
     .description("Set block mining interval (0 for auto-mine)")
     .action(async (seconds: string) => {
-      const interval = parseInt(seconds, 10);
+      const interval = Number.parseInt(seconds, 10);
       console.log(`Setting block interval to ${interval}s...`);
       await rpcCall("evm_setIntervalMining", [interval]);
       console.log(`Block interval set to ${interval}s`);
@@ -187,22 +202,24 @@ export function registerChainCommands(program: Command): void {
     .action(async () => {
       const config = loadConfig();
 
-      const [blockNum, gasPrice, block] = await Promise.all([
+      const [blockNum, gasPrice, block] = (await Promise.all([
         rpcCall("eth_blockNumber"),
         rpcCall("eth_gasPrice"),
         rpcCall("eth_getBlockByNumber", ["latest", false]),
-      ]) as [string, string, { timestamp: string; baseFeePerGas?: string }];
+      ])) as [string, string, { timestamp: string; baseFeePerGas?: string }];
 
-      const blockNumber = parseInt(blockNum, 16);
+      const blockNumber = Number.parseInt(blockNum, 16);
       const gasPriceGwei = Number(BigInt(gasPrice)) / 1e9;
-      const timestamp = parseInt(block.timestamp, 16);
+      const timestamp = Number.parseInt(block.timestamp, 16);
       const baseFee = block.baseFeePerGas
         ? Number(BigInt(block.baseFeePerGas)) / 1e9
         : 0;
 
       console.log(`Chain Status (${config.networkName}):`);
       console.log(`  Block:      ${blockNumber.toLocaleString()}`);
-      console.log(`  Timestamp:  ${timestamp} (${new Date(timestamp * 1000).toISOString()})`);
+      console.log(
+        `  Timestamp:  ${timestamp} (${new Date(timestamp * 1000).toISOString()})`
+      );
       console.log(`  Gas Price:  ${gasPriceGwei.toFixed(2)} gwei`);
       console.log(`  Base Fee:   ${baseFee.toFixed(2)} gwei`);
     });

@@ -1,9 +1,9 @@
 // Test commands: test, test --fork, test --coverage
 
-import { Command } from "commander";
-import * as forge from "../lib/forge";
-import { loadConfig, getChainCustomParams } from "../lib/config";
 import { existsSync } from "node:fs";
+import type { Command } from "commander";
+import { getChainCustomParams, loadConfig } from "../lib/config";
+import * as forge from "../lib/forge";
 
 export function registerTestCommands(program: Command): void {
   program
@@ -20,7 +20,7 @@ export function registerTestCommands(program: Command): void {
         ? getChainCustomParams(config.chainId)
         : { forgeBuildParams: [], forgeScriptParams: [] };
 
-      const verbosity = parseInt(options.verbosity, 10);
+      const verbosity = Number.parseInt(options.verbosity, 10);
 
       if (options.coverage) {
         console.log("Generating coverage report...");
@@ -45,8 +45,7 @@ export function registerTestCommands(program: Command): void {
 
           // Try to open the report
           if (existsSync("report/index.html")) {
-            const openCmd =
-              process.platform === "darwin" ? "open" : "xdg-open";
+            const openCmd = process.platform === "darwin" ? "open" : "xdg-open";
             Bun.spawn([openCmd, "report/index.html"], {
               stdout: "ignore",
               stderr: "ignore",

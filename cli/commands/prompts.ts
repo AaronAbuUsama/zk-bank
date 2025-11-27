@@ -1,12 +1,12 @@
 // Prompt commands: test-tree-prompt, test-prompt
 
-import { Command } from "commander";
-import { glob } from "glob";
-import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import type { Command } from "commander";
+import { glob } from "glob";
 import {
-  TEST_TREE_GENERATION_PROMPT,
   TEST_FILE_GENERATION_PROMPT,
+  TEST_TREE_GENERATION_PROMPT,
 } from "../lib/templates";
 
 async function readFileContent(path: string): Promise<string> {
@@ -73,7 +73,7 @@ export function registerPromptCommands(program: Command): void {
       const targetTestContent = await readFileContent(options.src);
 
       // Replace placeholders
-      let output = TEST_FILE_GENERATION_PROMPT.replace(
+      const output = TEST_FILE_GENERATION_PROMPT.replace(
         "<<SOURCE>>",
         sourceContent
       )

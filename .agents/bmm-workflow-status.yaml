@@ -69,8 +69,8 @@ workflow_status:
         name: "Product Brief"
         agent: "analyst"
         command: "/bmad:bmm:workflows:product-brief"
-        status: "required"
-        output: null
+        status: ".agents/product-brief-zk-bank-2025-11-26.md"
+        output: ".agents/product-brief-zk-bank-2025-11-26.md"
 
   # Phase 1: Planning
   - phase: 1
@@ -80,8 +80,8 @@ workflow_status:
         name: "Product Requirements Document"
         agent: "pm"
         command: "/bmad:bmm:workflows:prd"
-        status: "required"
-        output: null
+        status: ".agents/prd.md"
+        output: ".agents/prd.md"
         note: "Incorporate existing CLI PRD, define protocol + CLI + game layers"
 
       - id: "validate-prd"
@@ -95,9 +95,9 @@ workflow_status:
         name: "Create UX Design"
         agent: "ux-designer"
         command: "/bmad:bmm:workflows:create-ux-design"
-        status: "recommended"
-        output: null
-        note: "CLI UX + future game/social UI concepts"
+        status: ".agents/ux-design-specification.md"
+        output: ".agents/ux-design-specification.md"
+        note: "CLI UX with themes, layouts, component library, user journeys"
 
   # Phase 2: Solutioning
   - phase: 2
@@ -107,8 +107,8 @@ workflow_status:
         name: "Architecture"
         agent: "architect"
         command: "/bmad:bmm:workflows:architecture"
-        status: "required"
-        output: null
+        status: ".agents/architecture.md"
+        output: ".agents/architecture.md"
         note: "Protocol contracts, CLI structure, future game layer integration"
 
       - id: "test-design"

@@ -38,9 +38,10 @@ function parseTestTree(content: string): TreeItem {
     throw new Error("The test definition must have only one root node");
   }
   const [rootKey] = rootKeys;
-  if (!rootKey || !data[rootKey]) {
+  if (!(rootKey && data[rootKey])) {
     throw new Error("A root node needs to be defined");
-  } else if (!data[rootKey]?.length) {
+  }
+  if (!data[rootKey]?.length) {
     throw new Error("The root node needs to include at least one element");
   }
 
@@ -54,7 +55,7 @@ function parseRuleChildren(lines: Array<Rule>): Array<TreeItem> {
   if (!lines?.length) return [];
 
   const result: Array<TreeItem> = lines.map((rule) => {
-    if (!rule.when && !rule.given && !rule.it)
+    if (!(rule.when || rule.given || rule.it))
       throw new Error("All rules should have a 'given', 'when' or 'it' rule");
 
     let content = "";
@@ -87,7 +88,7 @@ function parseRuleChildren(lines: Array<Rule>): Array<TreeItem> {
 
 function dedupeNodeNames(
   node: TreeItem,
-  seenItems: Set<string> = new Set(),
+  seenItems: Set<string> = new Set()
 ): Set<string> {
   if (!node.children?.length) return seenItems;
 
@@ -97,7 +98,7 @@ function dedupeNodeNames(
 
     let str = child.content.trim();
     if (str.startsWith("It ")) continue;
-    else if (seenItems.has(str)) {
+    if (seenItems.has(str)) {
       let suffixIdx = 1;
       do {
         suffixIdx++;
@@ -129,7 +130,7 @@ function renderTree(root: TreeItem): string {
 function renderTreeItem(
   root: TreeItem,
   lastChildren: boolean,
-  prefix = "",
+  prefix = ""
 ): Array<string> {
   const result: string[] = [];
 

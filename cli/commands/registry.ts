@@ -1,16 +1,9 @@
-#!/usr/bin/env bun
+// Central command registry - single source of truth for all commands
+// Used by both Commander (CLI mode) and Ink (interactive mode)
 
-// Ink interactive CLI launcher
+import type { CommandDefinition } from "../ui/components/types";
 
-import { Select } from "@inkjs/ui";
-import { Box, render, Text } from "ink";
-import { useState } from "react";
-import { CommandRunner } from "./components/CommandRunner";
-import { Header } from "./components/Header";
-import type { CommandDefinition } from "./components/types";
-
-// Define all available commands with metadata
-const commands: CommandDefinition[] = [
+export const commands: CommandDefinition[] = [
   // Build commands
   {
     id: "init",
@@ -177,96 +170,3 @@ const commands: CommandDefinition[] = [
     category: "Chain",
   },
 ];
-
-type AppState = "select" | "running" | "done";
-
-function App() {
-  const [state, setState] = useState<AppState>("select");
-  const [selectedCommand, setSelectedCommand] =
-    useState<CommandDefinition | null>(null);
-  const [exitCode, setExitCode] = useState<number | null>(null);
-
-  const handleSelect = (value: string) => {
-    const cmd = commands.find((c) => c.id === value);
-    if (cmd) {
-      setSelectedCommand(cmd);
-      setState("running");
-    }
-  };
-
-  const handleComplete = (code: number) => {
-    setExitCode(code);
-    setState("done");
-  };
-
-  const handleBack = () => {
-    setState("select");
-    setSelectedCommand(null);
-    setExitCode(null);
-  };
-
-  // Group commands by category for better UX
-  const options = commands.map((cmd) => ({
-    label: `${cmd.label}`,
-    value: cmd.id,
-    description: `[${cmd.category}] ${cmd.description}`,
-  }));
-
-  return (
-    <Box flexDirection="column" padding={1}>
-      <Header />
-
-      {state === "select" && (
-        <Box flexDirection="column" marginTop={1}>
-          <Text color="cyan">Select a command to run:</Text>
-          <Box marginTop={1}>
-            <Select onChange={handleSelect} options={options} />
-          </Box>
-          <Box marginTop={1}>
-            <Text dimColor>
-              Use arrow keys to navigate, Enter to select, Ctrl+C to exit
-            </Text>
-          </Box>
-        </Box>
-      )}
-
-      {state === "running" && selectedCommand && (
-        <CommandRunner command={selectedCommand} onComplete={handleComplete} />
-      )}
-
-      {state === "done" && selectedCommand && (
-        <Box flexDirection="column" marginTop={1}>
-          <Box>
-            {exitCode === 0 ? (
-              <Text color="green">Command completed successfully</Text>
-            ) : (
-              <Text color="red">Command failed with exit code {exitCode}</Text>
-            )}
-          </Box>
-          <Box marginTop={1}>
-            <Text dimColor>
-              Press Enter to run another command, Ctrl+C to exit
-            </Text>
-          </Box>
-          <Select
-            onChange={(value) => {
-              if (value === "back") {
-                handleBack();
-              } else {
-                process.exit(exitCode ?? 0);
-              }
-            }}
-            options={[
-              { label: "Run another command", value: "back" },
-              { label: "Exit", value: "exit" },
-            ]}
-          />
-        </Box>
-      )}
-    </Box>
-  );
-}
-
-export function runApp() {
-  render(<App />);
-}

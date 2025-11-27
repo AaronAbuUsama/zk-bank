@@ -1,10 +1,10 @@
 // Verify commands: verify-etherscan, verify-blockscout, verify-sourcify
 
-import { Command } from "commander";
-import { loadConfig, validateConfig } from "../lib/config";
-import { verifyFromBroadcast, type VerifierConfig } from "../lib/verifier";
-import type { VerifierType } from "../types";
 import { existsSync } from "node:fs";
+import type { Command } from "commander";
+import { loadConfig, validateConfig } from "../lib/config";
+import { type VerifierConfig, verifyFromBroadcast } from "../lib/verifier";
+import type { VerifierType } from "../types";
 
 export function registerVerifyCommands(program: Command): void {
   program

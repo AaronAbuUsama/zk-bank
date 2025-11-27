@@ -1,10 +1,10 @@
 // Utility commands: storage, refund, gas-price, balance, nonce
 
-import { Command } from "commander";
-import * as forge from "../lib/forge";
+import type { Command } from "commander";
+import { createInterface } from "readline";
 import * as cast from "../lib/cast";
 import { loadConfig, validateConfig } from "../lib/config";
-import { createInterface } from "readline";
+import * as forge from "../lib/forge";
 
 async function confirm(message: string): Promise<boolean> {
   const rl = createInterface({
@@ -71,7 +71,11 @@ export function registerUtilCommands(program: Command): void {
       const config = loadConfig();
 
       try {
-        validateConfig(config, ["rpcUrl", "networkName", "deploymentPrivateKey"]);
+        validateConfig(config, [
+          "rpcUrl",
+          "networkName",
+          "deploymentPrivateKey",
+        ]);
       } catch (error) {
         console.error("Configuration error:", (error as Error).message);
         process.exit(1);
@@ -118,8 +122,7 @@ export function registerUtilCommands(program: Command): void {
       }
 
       if (
-        config.refundAddress ===
-        "0x0000000000000000000000000000000000000000"
+        config.refundAddress === "0x0000000000000000000000000000000000000000"
       ) {
         console.error("Refund address cannot be zero address");
         process.exit(1);
@@ -153,7 +156,7 @@ export function registerUtilCommands(program: Command): void {
       }
 
       const remainingEther = await cast.toUnit(remaining, "ether");
-      console.log(`\nSummary:`);
+      console.log("\nSummary:");
       console.log(`  Refunding: ${remainingEther} ETH (${remaining} wei)`);
       console.log(`  Recipient: ${config.refundAddress}`);
 
@@ -171,7 +174,7 @@ export function registerUtilCommands(program: Command): void {
       });
 
       if (result.success) {
-        console.log(`\nRefund successful!`);
+        console.log("\nRefund successful!");
         if (result.txHash) {
           console.log(`Transaction: ${result.txHash}`);
         }
@@ -181,7 +184,9 @@ export function registerUtilCommands(program: Command): void {
       }
     });
 
-  const nonce = program.command("nonce").description("Nonce management commands");
+  const nonce = program
+    .command("nonce")
+    .description("Nonce management commands");
 
   nonce
     .command("clean")
@@ -210,7 +215,7 @@ export function registerUtilCommands(program: Command): void {
         rpcUrl: config.rpcUrl!,
         to: address,
         value: 0n,
-        nonce: parseInt(nonceValue, 10),
+        nonce: Number.parseInt(nonceValue, 10),
       });
 
       process.exit(exitCode);
@@ -244,7 +249,7 @@ export function registerUtilCommands(program: Command): void {
           rpcUrl: config.rpcUrl!,
           to: address,
           value: 0n,
-          nonce: parseInt(nonceValue, 10),
+          nonce: Number.parseInt(nonceValue, 10),
         });
 
         if (result.success) {
@@ -266,7 +271,9 @@ export function registerUtilCommands(program: Command): void {
       console.log(`  Chain ID: ${config.chainId || "(not set)"}`);
       console.log(`  RPC URL: ${config.rpcUrl ? "***" : "(not set)"}`);
       console.log(`  Verifier: ${config.verifier || "(not set)"}`);
-      console.log(`  Deployment Script: ${config.deploymentScript || "(not set)"}`);
+      console.log(
+        `  Deployment Script: ${config.deploymentScript || "(not set)"}`
+      );
 
       if (config.deploymentPrivateKey && config.rpcUrl) {
         const address = await cast.walletAddress(config.deploymentPrivateKey);

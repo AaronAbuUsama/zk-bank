@@ -1,11 +1,11 @@
 // Test tree commands: sync-tests, check-tests, test-tree
 
-import { Command } from "commander";
-import { glob } from "glob";
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
-import { yamlToTree, processYamlFile } from "../lib/test-tree-parser";
+import type { Command } from "commander";
+import { glob } from "glob";
 import { getSolcVersion } from "../lib/config";
+import { processYamlFile } from "../lib/test-tree-parser";
 
 const TEST_TREE_MARKDOWN = "TESTS.md";
 
@@ -56,19 +56,27 @@ export function registerTestTreeCommands(program: Command): void {
         await processYamlFile(yamlFile);
 
         // Scaffold or sync
-        if (!existsSync(solFile)) {
-          console.log(`[Scaffold]   ${solFile}`);
-          const proc = Bun.spawn(
-            ["bulloak", "scaffold", "-s", solcVersion, "--vm-skip", "-w", treeFile],
-            { stdout: "inherit", stderr: "inherit" }
-          );
-          await proc.exited;
-        } else {
+        if (existsSync(solFile)) {
           console.log(`[Sync file]  ${solFile}`);
           const proc = Bun.spawn(["bulloak", "check", "--fix", treeFile], {
             stdout: "inherit",
             stderr: "inherit",
           });
+          await proc.exited;
+        } else {
+          console.log(`[Scaffold]   ${solFile}`);
+          const proc = Bun.spawn(
+            [
+              "bulloak",
+              "scaffold",
+              "-s",
+              solcVersion,
+              "--vm-skip",
+              "-w",
+              treeFile,
+            ],
+            { stdout: "inherit", stderr: "inherit" }
+          );
           await proc.exited;
         }
       }

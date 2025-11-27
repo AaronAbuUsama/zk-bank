@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zk-bank CLI Color Themes</title>
+    <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 30px;
+    }
+
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .theme-card {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .theme-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .theme-name {
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .theme-vibe {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .terminal-mock {
+      padding: 0;
+      font-size: 13px;
+      min-height: 320px;
+    }
+
+    .terminal-banner {
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .terminal-main {
+      padding: 12px;
+      min-height: 220px;
+    }
+
+    .terminal-footer {
+      padding: 6px 12px;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .chat-message {
+      margin-bottom: 6px;
+      display: flex;
+      gap: 8px;
+    }
+    .chat-user {
+      font-weight: bold;
+    }
+    .chat-text {
+      opacity: 0.9;
+    }
+
+    .liquidation {
+      padding: 8px 12px;
+      margin: 8px 0;
+      border-left: 3px solid;
+    }
+
+    .position-preview {
+      padding: 8px 12px;
+      margin: 8px 0;
+      border: 1px dashed;
+    }
+
+    .input-area {
+      padding: 8px 12px;
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .input-prompt {
+      opacity: 0.6;
+    }
+    .input-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%,
+      50% {
+        opacity: 1;
+      }
+      51%,
+      100% {
+        opacity: 0;
+      }
+    }
+
+    .color-swatches {
+      padding: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .swatch {
+      width: 60px;
+      height: 40px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: bold;
+    }
+
+    .best-for {
+      padding: 12px;
+      font-size: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .best-for strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* Theme 1: Cyberpunk Neon */
+    .theme-cyberpunk .theme-header {
+      background: #0d0221;
+      color: #ff2a6d;
+    }
+    .theme-cyberpunk .terminal-mock {
+      background: #0d0221;
+      color: #d1f7ff;
+    }
+    .theme-cyberpunk .terminal-banner {
+      background: #1a0a2e;
+      color: #05d9e8;
+    }
+    .theme-cyberpunk .terminal-footer {
+      background: #1a0a2e;
+      color: #05d9e8;
+    }
+    .theme-cyberpunk .chat-user.user1 {
+      color: #ff2a6d;
+    }
+    .theme-cyberpunk .chat-user.user2 {
+      color: #05d9e8;
+    }
+    .theme-cyberpunk .chat-user.user3 {
+      color: #ff9f1c;
+    }
+    .theme-cyberpunk .liquidation {
+      background: rgba(255, 42, 109, 0.15);
+      border-color: #ff2a6d;
+      color: #ff2a6d;
+    }
+    .theme-cyberpunk .position-preview {
+      background: rgba(5, 217, 232, 0.1);
+      border-color: #05d9e8;
+    }
+    .theme-cyberpunk .price-up {
+      color: #39ff14;
+    }
+    .theme-cyberpunk .price-down {
+      color: #ff2a6d;
+    }
+    .theme-cyberpunk .input-area {
+      background: #1a0a2e;
+    }
+    .theme-cyberpunk .input-cursor {
+      background: #ff2a6d;
+    }
+    .theme-cyberpunk .color-swatches {
+      background: #0d0221;
+    }
+
+    /* Theme 2: Terminal Classic */
+    .theme-classic .theme-header {
+      background: #0a0a0a;
+      color: #33ff33;
+    }
+    .theme-classic .terminal-mock {
+      background: #0a0a0a;
+      color: #b0b0b0;
+    }
+    .theme-classic .terminal-banner {
+      background: #0f0f0f;
+      color: #33ff33;
+    }
+    .theme-classic .terminal-footer {
+      background: #0f0f0f;
+      color: #33ff33;
+    }
+    .theme-classic .chat-user.user1 {
+      color: #33ff33;
+    }
+    .theme-classic .chat-user.user2 {
+      color: #00ffff;
+    }
+    .theme-classic .chat-user.user3 {
+      color: #ffff33;
+    }
+    .theme-classic .liquidation {
+      background: rgba(255, 51, 51, 0.15);
+      border-color: #ff3333;
+      color: #ff3333;
+    }
+    .theme-classic .position-preview {
+      background: rgba(51, 255, 51, 0.1);
+      border-color: #33ff33;
+    }
+    .theme-classic .price-up {
+      color: #33ff33;
+    }
+    .theme-classic .price-down {
+      color: #ff3333;
+    }
+    .theme-classic .input-area {
+      background: #0f0f0f;
+    }
+    .theme-classic .input-cursor {
+      background: #33ff33;
+    }
+    .theme-classic .color-swatches {
+      background: #0a0a0a;
+    }
+
+    /* Theme 3: Nord Frost */
+    .theme-nord .theme-header {
+      background: #2e3440;
+      color: #88c0d0;
+    }
+    .theme-nord .terminal-mock {
+      background: #2e3440;
+      color: #d8dee9;
+    }
+    .theme-nord .terminal-banner {
+      background: #3b4252;
+      color: #81a1c1;
+    }
+    .theme-nord .terminal-footer {
+      background: #3b4252;
+      color: #81a1c1;
+    }
+    .theme-nord .chat-user.user1 {
+      color: #88c0d0;
+    }
+    .theme-nord .chat-user.user2 {
+      color: #b48ead;
+    }
+    .theme-nord .chat-user.user3 {
+      color: #ebcb8b;
+    }
+    .theme-nord .liquidation {
+      background: rgba(191, 97, 106, 0.15);
+      border-color: #bf616a;
+      color: #bf616a;
+    }
+    .theme-nord .position-preview {
+      background: rgba(136, 192, 208, 0.1);
+      border-color: #88c0d0;
+    }
+    .theme-nord .price-up {
+      color: #a3be8c;
+    }
+    .theme-nord .price-down {
+      color: #bf616a;
+    }
+    .theme-nord .input-area {
+      background: #3b4252;
+    }
+    .theme-nord .input-cursor {
+      background: #88c0d0;
+    }
+    .theme-nord .color-swatches {
+      background: #2e3440;
+    }
+
+    /* Theme 4: Dracula */
+    .theme-dracula .theme-header {
+      background: #282a36;
+      color: #bd93f9;
+    }
+    .theme-dracula .terminal-mock {
+      background: #282a36;
+      color: #f8f8f2;
+    }
+    .theme-dracula .terminal-banner {
+      background: #21222c;
+      color: #6272a4;
+    }
+    .theme-dracula .terminal-footer {
+      background: #21222c;
+      color: #6272a4;
+    }
+    .theme-dracula .chat-user.user1 {
+      color: #bd93f9;
+    }
+    .theme-dracula .chat-user.user2 {
+      color: #8be9fd;
+    }
+    .theme-dracula .chat-user.user3 {
+      color: #ffb86c;
+    }
+    .theme-dracula .liquidation {
+      background: rgba(255, 85, 85, 0.15);
+      border-color: #ff5555;
+      color: #ff5555;
+    }
+    .theme-dracula .position-preview {
+      background: rgba(139, 233, 253, 0.1);
+      border-color: #8be9fd;
+    }
+    .theme-dracula .price-up {
+      color: #50fa7b;
+    }
+    .theme-dracula .price-down {
+      color: #ff5555;
+    }
+    .theme-dracula .input-area {
+      background: #21222c;
+    }
+    .theme-dracula .input-cursor {
+      background: #f8f8f2;
+    }
+    .theme-dracula .color-swatches {
+      background: #282a36;
+    }
+
+    /* Theme 5: Bloomberg */
+    .theme-bloomberg .theme-header {
+      background: #000000;
+      color: #ff9933;
+    }
+    .theme-bloomberg .terminal-mock {
+      background: #000000;
+      color: #cccccc;
+    }
+    .theme-bloomberg .terminal-banner {
+      background: #1a1a1a;
+      color: #ff9933;
+    }
+    .theme-bloomberg .terminal-footer {
+      background: #1a1a1a;
+      color: #ff9933;
+    }
+    .theme-bloomberg .chat-user.user1 {
+      color: #ff9933;
+    }
+    .theme-bloomberg .chat-user.user2 {
+      color: #33ccff;
+    }
+    .theme-bloomberg .chat-user.user3 {
+      color: #ffcc00;
+    }
+    .theme-bloomberg .liquidation {
+      background: rgba(255, 68, 68, 0.15);
+      border-color: #ff4444;
+      color: #ff4444;
+    }
+    .theme-bloomberg .position-preview {
+      background: rgba(255, 153, 51, 0.1);
+      border-color: #ff9933;
+    }
+    .theme-bloomberg .price-up {
+      color: #00cc66;
+    }
+    .theme-bloomberg .price-down {
+      color: #ff4444;
+    }
+    .theme-bloomberg .input-area {
+      background: #1a1a1a;
+    }
+    .theme-bloomberg .input-cursor {
+      background: #ff9933;
+    }
+    .theme-bloomberg .color-swatches {
+      background: #000000;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>zk-bank CLI Color Themes</h1>
+    <p class="subtitle">
+      Terminal color palettes for Ink/React CLI trading interface
+    </p>
+
+    <div class="themes-grid">
+      <!-- Theme 1: Cyberpunk Neon -->
+      <div class="theme-card theme-cyberpunk">
+        <div class="theme-header">
+          <span class="theme-name">1. Cyberpunk Neon</span>
+          <span class="theme-vibe">Electric • High Energy • Futuristic</span>
+        </div>
+        <div class="terminal-mock">
+          <div class="terminal-banner">
+            <span
+              >ETH <span class="price-up">$3,421.50 ▲2.3%</span></span
+            >
+            <span
+              >BTC <span class="price-down">$67,890 ▼0.8%</span></span
+            >
+            <span>📡 Connected</span>
+          </div>
+          <div class="terminal-main">
+            <div class="chat-message">
+              <span class="chat-user user1">degen_ape:</span>
+              <span class="chat-text">just went 5x long, wish me luck</span>
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user2">zkwhale:</span>
+              <span class="chat-text">ngmi ser, price about to dump</span>
+            </div>
+            <div class="liquidation">
+              🔥 LIQUIDATED: 0x7a3f...8b2c | 12.5 ETH | -$42,650
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user3">anon_trader:</span>
+              <span class="chat-text">REKT lmaooo</span>
+            </div>
+            <div class="position-preview">
+              📊 Preview: LONG ETH 2x | Entry: $3,421 | Liq: $2,850 | CR: 150%
+            </div>
+            <div class="input-area">
+              <span class="input-prompt">></span>
+              <span>2x long ETH</span>
+              <span class="input-cursor"></span>
+            </div>
+          </div>
+          <div class="terminal-footer">
+            <span>[1] Dashboard</span>
+            <span>[2] Trollbox</span>
+            <span>[3] Chain</span>
+            <span>? Help</span>
+          </div>
+        </div>
+        <div class="color-swatches">
+          <div class="swatch" style="background:#0d0221;color:#fff;">
+            BG #0d0221
+          </div>
+          <div class="swatch" style="background:#ff2a6d;color:#fff;">
+            Primary #ff2a6d
+          </div>
+          <div class="swatch" style="background:#05d9e8;color:#000;">
+            Accent #05d9e8
+          </div>
+          <div class="swatch" style="background:#39ff14;color:#000;">
+            Up #39ff14
+          </div>
+          <div class="swatch" style="background:#ff9f1c;color:#000;">
+            Warn #ff9f1c
+          </div>
+        </div>
+        <div class="best-for">
+          <strong>Best for:</strong>High-energy trading, appeals to younger
+          crypto-native users, strong visual identity, stands out from typical
+          CLI tools
+        </div>
+      </div>
+
+      <!-- Theme 2: Terminal Classic -->
+      <div class="theme-card theme-classic">
+        <div class="theme-header">
+          <span class="theme-name">2. Terminal Classic</span>
+          <span class="theme-vibe">Hacker • Retro • Matrix</span>
+        </div>
+        <div class="terminal-mock">
+          <div class="terminal-banner">
+            <span
+              >ETH <span class="price-up">$3,421.50 ▲2.3%</span></span
+            >
+            <span
+              >BTC <span class="price-down">$67,890 ▼0.8%</span></span
+            >
+            <span>● Connected</span>
+          </div>
+          <div class="terminal-main">
+            <div class="chat-message">
+              <span class="chat-user user1">degen_ape:</span>
+              <span class="chat-text">just went 5x long, wish me luck</span>
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user2">zkwhale:</span>
+              <span class="chat-text">ngmi ser, price about to dump</span>
+            </div>
+            <div class="liquidation">
+              *** LIQUIDATED: 0x7a3f...8b2c | 12.5 ETH | -$42,650 ***
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user3">anon_trader:</span>
+              <span class="chat-text">REKT lmaooo</span>
+            </div>
+            <div class="position-preview">
+              [PREVIEW] LONG ETH 2x | Entry: $3,421 | Liq: $2,850 | CR: 150%
+            </div>
+            <div class="input-area">
+              <span class="input-prompt">$</span>
+              <span>2x long ETH</span>
+              <span class="input-cursor"></span>
+            </div>
+          </div>
+          <div class="terminal-footer">
+            <span>[1] Dashboard</span>
+            <span>[2] Trollbox</span>
+            <span>[3] Chain</span>
+            <span>? Help</span>
+          </div>
+        </div>
+        <div class="color-swatches">
+          <div class="swatch" style="background:#0a0a0a;color:#33ff33;">
+            BG #0a0a0a
+          </div>
+          <div class="swatch" style="background:#33ff33;color:#000;">
+            Primary #33ff33
+          </div>
+          <div class="swatch" style="background:#00ffff;color:#000;">
+            Accent #00ffff
+          </div>
+          <div class="swatch" style="background:#ff3333;color:#fff;">
+            Down #ff3333
+          </div>
+          <div class="swatch" style="background:#ffff33;color:#000;">
+            Warn #ffff33
+          </div>
+        </div>
+        <div class="best-for">
+          <strong>Best for:</strong>Pure hacker aesthetic, nostalgia, excellent
+          contrast, familiar to terminal power users, minimal distraction
+        </div>
+      </div>
+
+      <!-- Theme 3: Nord Frost -->
+      <div class="theme-card theme-nord">
+        <div class="theme-header">
+          <span class="theme-name">3. Nord Frost</span>
+          <span class="theme-vibe">Cool • Modern • Calm</span>
+        </div>
+        <div class="terminal-mock">
+          <div class="terminal-banner">
+            <span
+              >ETH <span class="price-up">$3,421.50 ▲2.3%</span></span
+            >
+            <span
+              >BTC <span class="price-down">$67,890 ▼0.8%</span></span
+            >
+            <span>◉ Connected</span>
+          </div>
+          <div class="terminal-main">
+            <div class="chat-message">
+              <span class="chat-user user1">degen_ape:</span>
+              <span class="chat-text">just went 5x long, wish me luck</span>
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user2">zkwhale:</span>
+              <span class="chat-text">ngmi ser, price about to dump</span>
+            </div>
+            <div class="liquidation">
+              ⚠ LIQUIDATED: 0x7a3f...8b2c | 12.5 ETH | -$42,650
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user3">anon_trader:</span>
+              <span class="chat-text">REKT lmaooo</span>
+            </div>
+            <div class="position-preview">
+              ▸ Preview: LONG ETH 2x | Entry: $3,421 | Liq: $2,850 | CR: 150%
+            </div>
+            <div class="input-area">
+              <span class="input-prompt">›</span>
+              <span>2x long ETH</span>
+              <span class="input-cursor"></span>
+            </div>
+          </div>
+          <div class="terminal-footer">
+            <span>[1] Dashboard</span>
+            <span>[2] Trollbox</span>
+            <span>[3] Chain</span>
+            <span>? Help</span>
+          </div>
+        </div>
+        <div class="color-swatches">
+          <div class="swatch" style="background:#2e3440;color:#d8dee9;">
+            BG #2e3440
+          </div>
+          <div class="swatch" style="background:#88c0d0;color:#2e3440;">
+            Primary #88c0d0
+          </div>
+          <div class="swatch" style="background:#b48ead;color:#fff;">
+            Accent #b48ead
+          </div>
+          <div class="swatch" style="background:#a3be8c;color:#2e3440;">
+            Up #a3be8c
+          </div>
+          <div class="swatch" style="background:#bf616a;color:#fff;">
+            Down #bf616a
+          </div>
+        </div>
+        <div class="best-for">
+          <strong>Best for:</strong>Long coding sessions, proven
+          developer-favorite palette, easy on eyes, professional feel while
+          still modern
+        </div>
+      </div>
+
+      <!-- Theme 4: Dracula -->
+      <div class="theme-card theme-dracula">
+        <div class="theme-header">
+          <span class="theme-name">4. Dracula Dark</span>
+          <span class="theme-vibe">Rich • Popular • Balanced</span>
+        </div>
+        <div class="terminal-mock">
+          <div class="terminal-banner">
+            <span
+              >ETH <span class="price-up">$3,421.50 ▲2.3%</span></span
+            >
+            <span
+              >BTC <span class="price-down">$67,890 ▼0.8%</span></span
+            >
+            <span>● Connected</span>
+          </div>
+          <div class="terminal-main">
+            <div class="chat-message">
+              <span class="chat-user user1">degen_ape:</span>
+              <span class="chat-text">just went 5x long, wish me luck</span>
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user2">zkwhale:</span>
+              <span class="chat-text">ngmi ser, price about to dump</span>
+            </div>
+            <div class="liquidation">
+              💀 LIQUIDATED: 0x7a3f...8b2c | 12.5 ETH | -$42,650
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user3">anon_trader:</span>
+              <span class="chat-text">REKT lmaooo</span>
+            </div>
+            <div class="position-preview">
+              ⟩ Preview: LONG ETH 2x | Entry: $3,421 | Liq: $2,850 | CR: 150%
+            </div>
+            <div class="input-area">
+              <span class="input-prompt">❯</span>
+              <span>2x long ETH</span>
+              <span class="input-cursor"></span>
+            </div>
+          </div>
+          <div class="terminal-footer">
+            <span>[1] Dashboard</span>
+            <span>[2] Trollbox</span>
+            <span>[3] Chain</span>
+            <span>? Help</span>
+          </div>
+        </div>
+        <div class="color-swatches">
+          <div class="swatch" style="background:#282a36;color:#f8f8f2;">
+            BG #282a36
+          </div>
+          <div class="swatch" style="background:#bd93f9;color:#282a36;">
+            Primary #bd93f9
+          </div>
+          <div class="swatch" style="background:#8be9fd;color:#282a36;">
+            Accent #8be9fd
+          </div>
+          <div class="swatch" style="background:#50fa7b;color:#282a36;">
+            Up #50fa7b
+          </div>
+          <div class="swatch" style="background:#ff5555;color:#fff;">
+            Down #ff5555
+          </div>
+        </div>
+        <div class="best-for">
+          <strong>Best for:</strong>Widely adopted theme with huge community,
+          balanced colors, works well for extended use, familiar to many devs
+        </div>
+      </div>
+
+      <!-- Theme 5: Bloomberg -->
+      <div class="theme-card theme-bloomberg">
+        <div class="theme-header">
+          <span class="theme-name">5. Bloomberg Black</span>
+          <span class="theme-vibe">Financial • Professional • Dense</span>
+        </div>
+        <div class="terminal-mock">
+          <div class="terminal-banner">
+            <span
+              >ETH <span class="price-up">$3,421.50 ▲2.3%</span></span
+            >
+            <span
+              >BTC <span class="price-down">$67,890 ▼0.8%</span></span
+            >
+            <span>■ Connected</span>
+          </div>
+          <div class="terminal-main">
+            <div class="chat-message">
+              <span class="chat-user user1">degen_ape:</span>
+              <span class="chat-text">just went 5x long, wish me luck</span>
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user2">zkwhale:</span>
+              <span class="chat-text">ngmi ser, price about to dump</span>
+            </div>
+            <div class="liquidation">
+              !! LIQUIDATED: 0x7a3f...8b2c | 12.5 ETH | -$42,650 !!
+            </div>
+            <div class="chat-message">
+              <span class="chat-user user3">anon_trader:</span>
+              <span class="chat-text">REKT lmaooo</span>
+            </div>
+            <div class="position-preview">
+              >> Preview: LONG ETH 2x | Entry: $3,421 | Liq: $2,850 | CR: 150%
+            </div>
+            <div class="input-area">
+              <span class="input-prompt">></span>
+              <span>2x long ETH</span>
+              <span class="input-cursor"></span>
+            </div>
+          </div>
+          <div class="terminal-footer">
+            <span>[1] Dashboard</span>
+            <span>[2] Trollbox</span>
+            <span>[3] Chain</span>
+            <span>? Help</span>
+          </div>
+        </div>
+        <div class="color-swatches">
+          <div class="swatch" style="background:#000000;color:#ff9933;">
+            BG #000000
+          </div>
+          <div class="swatch" style="background:#ff9933;color:#000;">
+            Primary #ff9933
+          </div>
+          <div class="swatch" style="background:#33ccff;color:#000;">
+            Accent #33ccff
+          </div>
+          <div class="swatch" style="background:#00cc66;color:#000;">
+            Up #00cc66
+          </div>
+          <div class="swatch" style="background:#ff4444;color:#fff;">
+            Down #ff4444
+          </div>
+        </div>
+        <div class="best-for">
+          <strong>Best for:</strong>Serious trading feel, financial industry
+          credibility, high information density, pure black saves battery on
+          OLED
+        </div>
+      </div>
+    </div>
+
+    <div
+      style="max-width: 800px; margin: 40px auto; padding: 20px; background: #222; border-radius: 8px;"
+    >
+      <h2 style="margin-bottom: 16px;">Color Selection Guide</h2>
+      <p style="margin-bottom: 12px;">
+        <strong>Semantic Colors (consistent across themes):</strong>
+      </p>
+      <ul style="margin-left: 20px; margin-bottom: 16px;">
+        <li>
+          <strong>Price Up / Profit:</strong>Green variant
+        </li>
+        <li>
+          <strong>Price Down / Loss / Liquidation:</strong>Red variant
+        </li>
+        <li>
+          <strong>Warning / Attention:</strong>Yellow/Orange variant
+        </li>
+        <li>
+          <strong>Info / Accent:</strong>Cyan/Blue variant
+        </li>
+        <li>
+          <strong>Primary Action:</strong>Theme's primary color
+        </li>
+      </ul>
+      <p style="margin-bottom: 12px;">
+        <strong>Flush Grid Implementation:</strong>
+      </p>
+      <ul style="margin-left: 20px;">
+        <li>Background colors separate sections (banner, main, footer)</li>
+        <li>No box borders - color contrast creates structure</li>
+        <li>Liquidations use left border + background tint for emphasis</li>
+        <li>Position preview uses dashed border (only exception)</li>
+      </ul>
+    </div>
+  </body>
+</html>

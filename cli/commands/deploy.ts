@@ -1,11 +1,15 @@
 // Deploy commands: predeploy, deploy, resume
 
-import { Command } from "commander";
-import * as forge from "../lib/forge";
-import { loadConfig, validateConfig, getChainCustomParams } from "../lib/config";
-import { getVerifierParams } from "../lib/verifier";
-import { mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { mkdir } from "node:fs/promises";
+import type { Command } from "commander";
+import {
+  getChainCustomParams,
+  loadConfig,
+  validateConfig,
+} from "../lib/config";
+import * as forge from "../lib/forge";
+import { getVerifierParams } from "../lib/verifier";
 
 function getDeployScriptPath(script: string): string {
   return `script/${script}.s.sol:${script}Script`;
@@ -53,11 +57,11 @@ export function registerDeployCommands(program: Command): void {
         process.exit(1);
       }
 
-      const verbosity = parseInt(options.verbosity, 10);
+      const verbosity = Number.parseInt(options.verbosity, 10);
       const chainParams = getChainCustomParams(config.chainId!);
 
       // Run tests first (unless skipped or dry-run)
-      if (!options.skipTests && !options.dryRun) {
+      if (!(options.skipTests || options.dryRun)) {
         console.log("Running tests before deployment...\n");
         const testExitCode = await forge.test({
           verbosity,
@@ -100,7 +104,8 @@ export function registerDeployCommands(program: Command): void {
         scriptEnv.PLUGIN_REPO_FACTORY_ADDRESS = config.pluginRepoFactoryAddress;
       }
       if (config.pluginSetupProcessorAddress) {
-        scriptEnv.PLUGIN_SETUP_PROCESSOR_ADDRESS = config.pluginSetupProcessorAddress;
+        scriptEnv.PLUGIN_SETUP_PROCESSOR_ADDRESS =
+          config.pluginSetupProcessorAddress;
       }
 
       // Add plugin config if set
@@ -108,7 +113,8 @@ export function registerDeployCommands(program: Command): void {
         scriptEnv.PLUGIN_ENS_SUBDOMAIN = config.pluginEnsSubdomain;
       }
       if (config.pluginRepoMaintainerAddress) {
-        scriptEnv.PLUGIN_REPO_MAINTAINER_ADDRESS = config.pluginRepoMaintainerAddress;
+        scriptEnv.PLUGIN_REPO_MAINTAINER_ADDRESS =
+          config.pluginRepoMaintainerAddress;
       }
 
       if (options.dryRun) {

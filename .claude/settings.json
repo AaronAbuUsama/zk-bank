@@ -1,0 +1,47 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["mysql", "sequential-thinking", "playwright"],
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/abuusama/projects/solidity/staged-proposal-processor-plugin",
+      "/Users/abuusama/projects/solidity/airdrops",
+      "/Users/abuusama/projects/solidity/lockup",
+      "/Users/abuusama/projects/solidity/lusd"
+    ],
+    "allow": ["Edit:*", "Write:*", "MultiEdit:*", "NotebookEdit:*", "Bash:*"],
+    "defaultMode": "bypassPermissions"
+  },
+  "hooks": {
+    "UserPromptSubmit": [],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run full-check"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx ultracite fix"
+          }
+        ]
+      }
+    ],
+    "Stop": []
+  }
+}

@@ -1,10 +1,10 @@
 // Build commands: init, clean
 
-import { Command } from "commander";
-import * as forge from "../lib/forge";
-import { loadConfig, getChainCustomParams } from "../lib/config";
-import { glob } from "glob";
 import { rm } from "node:fs/promises";
+import type { Command } from "commander";
+import { glob } from "glob";
+import { getChainCustomParams, loadConfig } from "../lib/config";
+import * as forge from "../lib/forge";
 
 export function registerBuildCommands(program: Command): void {
   program
